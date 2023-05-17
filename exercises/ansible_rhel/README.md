@@ -62,6 +62,10 @@ Having said that, the exercises themselves should take roughly 4-5 hours. The fi
 * [Exercise 2.6 - Workflows](2.6-workflows)
 * [Exercise 2.7 - Wrap up](2.7-wrap)
 
+## Section 3 - Ansible Automation with GitOps
+* [Exercise 3.1 - Introduction to GitOps](3.1-gitops)
+
+
 ## Supplemental Exercises
 
 There is also a series of exercises that go above and beyond our normal workshop content.  Please check out our supplemental exercises if you want more content to learn from.
