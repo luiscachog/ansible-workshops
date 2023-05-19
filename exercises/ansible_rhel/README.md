@@ -19,7 +19,9 @@ After finishing this lab you are ready to start using Ansible for your automatio
   - [Time planning](#time-planning)
   - [Lab Diagram](#lab-diagram)
   - [Section 1 - Command-line Ansible Exercises](#section-1---command-line-ansible-exercises)
+    - [Section 1 - Advanced Topics](#section-1---advanced-topics)
   - [Section 2 - Ansible Automation Platform Exercises](#section-2---ansible-automation-platform-exercises)
+  - [Section 3 - Ansible Automation with GitOps](#section-3---ansible-automation-with-gitops)
   - [Supplemental Exercises](#supplemental-exercises)
 
 ## Presentations
@@ -51,6 +53,10 @@ Having said that, the exercises themselves should take roughly 4-5 hours. The fi
 * [Exercise 1.5 - Conditionals, Handlers and Loops](1.5-handlers)
 * [Exercise 1.6 - Templates](1.6-templates)
 * [Exercise 1.7 - Roles](1.7-role)
+
+### Section 1 - Advanced Topics
+
+* [Exercise 1.8 - Collections](1.8-collections)
 
 ## Section 2 - Ansible Automation Platform Exercises
 
