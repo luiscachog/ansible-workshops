@@ -56,11 +56,9 @@ cd my-collections
 Collection have two default lookup paths that are searched:
 
 - User scoped path `/home/<username>/.ansible/collections`
-
 - System scoped path `/usr/share/ansible/collections`
 
-> **TIP**: Users can customized the collections path by modifying the `collections_path` key in the
-> `ansible.cfg` file or by setting the environment variable `ANSIBLE_COLLECTIONS_PATHS` with the desired search path.
+> **TIP**: Users can customized the collections path by modifying the `collections_path` key in the `ansible.cfg` file or by setting the environment variable `ANSIBLE_COLLECTIONS_PATHS` with the desired search path.
 
 #### Installing in the default collections path
 
@@ -87,10 +85,10 @@ ansible-galaxy collection install -p . newswangerd.collection_demo
 
 > **NOTE**: When installing on custom paths not included in the collections search path a standard warning message is issued:
 >
-> ```bash
 >  [WARNING]: The specified collections path '/home/<username>/my-collections' is not part of the configured Ansible collections paths
 > '/home/<username>/.ansible/collections:/usr/share/ansible/collections'. The installed collection won't be picked up in an Ansible run.
-> ```
+>
+
 
 The installed path follows the standard pattern `ansible_collections/<author>/<collection>`.
 
@@ -171,7 +169,6 @@ A short description of the collection structure:
 When a collection is downloaded with the `ansible-galaxy collection install` two more files are installed:
 
 - `MANIFEST.json`, holding additional Galaxy metadata in JSON format.
-
 - `FILES.json`, a JSON object containing all the files SHA256 checksum.
 
 ### Step 2: Creating collections from the command line
@@ -247,12 +244,12 @@ mkdir plugins/modules
 
 Create the `demo_hello.py` module in the new folder.
 
-> **Tip**
+> **TIP**:
 >
 > The module code is available in the `solutions/modules` folder of this exercise.
-> ```bash
->   cp <path_to_workshop_repo>/workshops/exercises/ansible_collections/1-create-collections/modules/> demo_hello.py plugins/modules/
-> ```
+>
+> cp <path_to_workshop_repo>/workshops/exercises/ansible_collections/1-create-collections/modules/> demo_hello.py plugins/modules/
+>
 
 ```bash
 vim plugins/modules/demo_hello.py
@@ -352,7 +349,8 @@ not meant to be executed independently.
 
 The last step of this exercise will be focused on a role creation inside the custom collection. We will deploy a basic role that uses the previous module to dynamically generates greetings inside an index.html and build it inside an OCI image with podman. The image will be finally pushed into a customizable private registry.
 
-> **TIP**: If you want to speed up the lab you can copy the completed role from the exercise `solutions/roles` folder.
+> **TIP**:
+> If you want to speed up the lab you can copy the completed role from the exercise `solutions/roles` folder.
 
 Generate the new role skeleton using the `ansible-galaxy init` command:
 
@@ -412,7 +410,8 @@ Create the following tasks in the `roles/demo_image_builder/tasks/main.yml` file
 
 Notice the usage of the `demo_hello` module, installed in the collection, to generate the greeting string.
 
-> **NOTE**: When a collection role calls a module in the same collection namespace, the module is automatically resolved.
+> **NOTE**:
+> When a collection role calls a module in the same collection namespace, the module is automatically resolved.
 
 Create the following variables in the `roles/demo_image_builder/defaults/main.yml`:
 
@@ -538,9 +537,11 @@ cat > playbook.yml << EOF
 EOF
 ```
 
-> **TIP**: Replace the `<YOUR_USERNAME>` field with a valid quay.io username.
+> **TIP**:
+> Replace the `<YOUR_USERNAME>` field with a valid quay.io username.
 
-> **NOTE**: Before running the test playbook, be sure to have a valid auth token to authenticate to > the registry. You can authenticate by running the following command and passing valid credentials > that will generate a token stored in the `~/.docker/config.json` file:
+> **NOTE**:
+> Before running the test playbook, be sure to have a valid auth token to authenticate to > the registry. You can authenticate by running the following command and passing valid credentials > that will generate a token stored in the `~/.docker/config.json` file:
 >
 > ```bash
 > podman login quay.io
