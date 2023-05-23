@@ -13,13 +13,14 @@
       - [Preparing the exercise environment](#preparing-the-exercise-environment)
       - [Installing in the default collections path](#installing-in-the-default-collections-path)
       - [Installing in a custom collections path](#installing-in-a-custom-collections-path)
+      - [Installing collections from a requirements file](#installing-collections-from-a-requirements-file)
       - [Inspecting the contents of the collection](#inspecting-the-contents-of-the-collection)
-    - [Step 2: Creating collections from the command line](#step-2-creating-collections-from-the-command-line)
+    - [Step 2 - Creating collections from the command line](#step-2---creating-collections-from-the-command-line)
       - [Initializing the Git repository](#initializing-the-git-repository)
-    - [Step 3: Adding custom modules and plugins to the collection](#step-3-adding-custom-modules-and-plugins-to-the-collection)
-    - [Step 4: Adding custom roles to the collection](#step-4-adding-custom-roles-to-the-collection)
-    - [Step 5: Building and installing collections](#step-5-building-and-installing-collections)
-    - [Step 6: Testing collections locally](#step-6-testing-collections-locally)
+    - [Step 3 - Adding custom modules and plugins to the collection](#step-3---adding-custom-modules-and-plugins-to-the-collection)
+    - [Step 4 - Adding custom roles to the collection](#step-4---adding-custom-roles-to-the-collection)
+    - [Step 5 - Building and installing collections](#step-5---building-and-installing-collections)
+    - [Step 6 - Testing collections locally](#step-6---testing-collections-locally)
       - [Running the test playbook](#running-the-test-playbook)
       - [Running the local container](#running-the-local-container)
 - [Takeaways](#takeaways)
@@ -104,33 +105,73 @@ $ tree
     └── newswangerd
         └── collection_demo
             ├── docs
-            │   └── test_guide.md
+            │   └── test_guide.md
             ├── FILES.json
             ├── MANIFEST.json
             ├── plugins
-            │   └── modules
-            │       └── real_facts.py
+            │   └── modules
+            │       └── real_facts.py
             ├── README.md
             ├── releases
-            │   ├── newswangerd-collection_demo-1.0.0.tar.gz
-            │   ├── newswangerd-collection_demo-1.0.1.tar.gz
-            │   ├── newswangerd-collection_demo-1.0.2.tar.gz
-            │   ├── newswangerd-collection_demo-1.0.3.tar.gz
-            │   ├── newswangerd-collection_demo-1.0.4.tar.gz
-            │   └── newswangerd-collection_demo-1.0.5.tar.gz
+            │   ├── newswangerd-collection_demo-1.0.0.tar.gz
+            │   ├── newswangerd-collection_demo-1.0.1.tar.gz
+            │   ├── newswangerd-collection_demo-1.0.2.tar.gz
+            │   ├── newswangerd-collection_demo-1.0.3.tar.gz
+            │   ├── newswangerd-collection_demo-1.0.4.tar.gz
+            │   └── newswangerd-collection_demo-1.0.5.tar.gz
             └── roles
                 ├── deltoid
-                │   ├── meta
-                │   │   └── main.yaml
-                │   ├── README.md
-                │   └── tasks
-                │       └── main.yml
+                │   ├── meta
+                │   │   └── main.yaml
+                │   ├── README.md
+                │   └── tasks
+                │       └── main.yml
                 └── factoid
                     ├── meta
-                    │   └── main.yaml
+                    │   └── main.yaml
                     ├── README.md
                     └── tasks
                         └── main.yml
+```
+
+#### Installing collections from a requirements file
+
+You can create a `collections/requirements.yml` file to list all the collections that you need to install to run playbooks in your Ansible project.
+By adding a `collections/requirements.yml` file in your Ansible project, your team members can identify the required collections, and they can use the  `ansible-galaxy` command, mentioned previously, to manually install them. Also,
+automation controller detects that file and automatically installs the collections it specifies before running your playbook
+
+The following `collections/requirements.yml` file lists several collections to install. You can target a specific version of an Ansible Content Collection or provide local or remote `.tar` files or Git repositories as the source of the collection.
+
+```yaml
+---
+collections:
+  - name: community.crypto
+  - name: ansible.netcommon
+
+  - name: ansible.posix
+    version: 1.2.0
+  - name: redhat.rhv
+    version: 1.4.1
+
+  - name: /tmp/community-dns-1.2.0.tar.gz
+
+  - name: http://www.example.com/redhat-insights-1.0.5.tar.gz
+
+  - name: git@github.com:ansible-collections/community.mysql.git
+```
+
+You can process the file with the `ansible-galaxy` command to install all of those collections.
+Use the `--requirements-file` (or `-r`) option to provide the `requirements.yml` file to the command.
+
+```bash
+ansible-galaxy collections install -r requirements.yml
+```
+
+You can also use the `ansible-galaxy collection list` command to list the collections
+available in the directories specified by your current `collections_paths` Ansible configuration directive on your control node.
+
+```bash
+ansible-galaxy collection list
 ```
 
 #### Inspecting the contents of the collection
@@ -174,7 +215,8 @@ When a collection is downloaded with the `ansible-galaxy collection install` two
 - `MANIFEST.json`, holding additional Galaxy metadata in JSON format.
 - `FILES.json`, a JSON object containing all the files SHA256 checksum.
 
-### Step 2: Creating collections from the command line
+
+### Step 2 - Creating collections from the command line
 
 Users can create their own collections and populate them with roles, playbook, plugins and modules.
 User defined collections skeleton can be created manually or it can be authored with the
@@ -199,7 +241,7 @@ ansible_collections/redhat/workshop_demo_collection/
 ├── docs
 ├── galaxy.yml
 ├── plugins
-│   └── README.md
+│   └── README.md
 ├── README.md
 └── roles
 ```
@@ -232,7 +274,7 @@ git push
 
 The `workshop_demo_collection` repository must be already present on GitHub. To create a new repository follow the official GitHub [documentation](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-new-repository).
 
-### Step 3: Adding custom modules and plugins to the collection
+### Step 3 - Adding custom modules and plugins to the collection
 
 Collections can be customized with different kinds of plugins and modules. For a complete list please refer to the `README.md` file in the `plugins` folder.
 
@@ -347,7 +389,7 @@ if __name__ == '__main__':
 An Ansible module is basically an implementation of the AnsibleModule class created and executed in a minimal function called `run_module()`. As you can see, a module has a `main()` function, like a plain Python executable. Anyway, it is
 not meant to be executed independently.
 
-### Step 4: Adding custom roles to the collection
+### Step 4 - Adding custom roles to the collection
 
 The last step of this exercise will be focused on a role creation inside the custom collection. We will deploy a basic role that uses the previous module to dynamically generates greetings inside an index.html and build it inside an OCI image with podman. The image will be finally pushed into a customizable private registry.
 
@@ -493,7 +535,7 @@ galaxy_info:
 dependencies: []
 ```
 
-### Step 5: Building and installing collections
+### Step 5 - Building and installing collections
 
 Once completed the creation task we can build the collection and generate a .tar.gz file that can be installed locally or uploaded to Galaxy.
 
@@ -513,7 +555,7 @@ ansible-galaxy collection install redhat-workshop_demo_collection-1.0.0.tar.gz
 
 By default the collection will be installed in the `~/.ansible/collections/ansible_collections` folder. Now the collection can be tested locally.
 
-### Step 6: Testing collections locally
+### Step 6 - Testing collections locally
 
 Create the `my-collections/collections_test` folder to execute the local test:
 
