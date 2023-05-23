@@ -58,7 +58,10 @@ Collection have two default lookup paths that are searched:
 - User scoped path `/home/<username>/.ansible/collections`
 - System scoped path `/usr/share/ansible/collections`
 
-> **TIP**: Users can customized the collections path by modifying the `collections_path` key in the `ansible.cfg` file or by setting the environment variable `ANSIBLE_COLLECTIONS_PATHS` with the desired search path.
+> **TIP**:
+> Users can customized the collections path by modifying the `collections_path` key in the `ansible.cfg` file or by setting the environment variable `ANSIBLE_COLLECTIONS_PATHS` with the desired search path.
+
+
 
 #### Installing in the default collections path
 
@@ -83,11 +86,11 @@ Install the collection in the current working directory using the `-p` flag foll
 ansible-galaxy collection install -p . newswangerd.collection_demo
 ```
 
-> **NOTE**: When installing on custom paths not included in the collections search path a standard warning message is issued:
+> **NOTE**:
+> When installing on custom paths not included in the collections search path a standard warning message is issued:
 >
->  [WARNING]: The specified collections path '/home/<username>/my-collections' is not part of the configured Ansible collections paths
+> [WARNING]: The specified collections path '/home/<username>/my-collections' is not part of the configured Ansible collections paths
 > '/home/<username>/.ansible/collections:/usr/share/ansible/collections'. The installed collection won't be picked up in an Ansible run.
->
 
 
 The installed path follows the standard pattern `ansible_collections/<author>/<collection>`.
@@ -245,11 +248,10 @@ mkdir plugins/modules
 Create the `demo_hello.py` module in the new folder.
 
 > **TIP**:
->
 > The module code is available in the `solutions/modules` folder of this exercise.
 >
 > cp <path_to_workshop_repo>/workshops/exercises/ansible_collections/1-create-collections/modules/> demo_hello.py plugins/modules/
->
+
 
 ```bash
 vim plugins/modules/demo_hello.py
@@ -500,6 +502,7 @@ From the collection folder run the following command:
 ```bash
 ansible-galaxy collection build
 ```
+
 The above command will create the file `redhat-workshop_demo_collection-1.0.0.tar.gz`. Notice the semantic x.y.z versioning.
 
 Once created the file can be installed in the `COLLECTIONS_PATH` to be tested locally:
@@ -540,12 +543,12 @@ EOF
 > **TIP**:
 > Replace the `<YOUR_USERNAME>` field with a valid quay.io username.
 
+
 > **NOTE**:
 > Before running the test playbook, be sure to have a valid auth token to authenticate to > the registry. You can authenticate by running the following command and passing valid credentials > that will generate a token stored in the `~/.docker/config.json` file:
 >
-> ```bash
 > podman login quay.io
-> ```
+
 
 #### Running the test playbook
 
