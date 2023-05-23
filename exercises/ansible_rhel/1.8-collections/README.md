@@ -59,7 +59,8 @@ Collection have two default lookup paths that are searched:
 - User scoped path `/home/<username>/.ansible/collections`
 - System scoped path `/usr/share/ansible/collections`
 
-> **TIP**:
+> **TIP**
+>
 > Users can customized the collections path by modifying the `collections_path` key in the `ansible.cfg` file or by setting the environment variable `ANSIBLE_COLLECTIONS_PATHS` with the desired search path.
 
 
@@ -87,7 +88,8 @@ Install the collection in the current working directory using the `-p` flag foll
 ansible-galaxy collection install -p . newswangerd.collection_demo
 ```
 
-> **NOTE**:
+> **NOTE**
+>
 > When installing on custom paths not included in the collections search path a standard warning message is issued:
 >
 > [WARNING]: The specified collections path '/home/<username>/my-collections' is not part of the configured Ansible collections paths
@@ -289,7 +291,8 @@ mkdir plugins/modules
 
 Create the `demo_hello.py` module in the new folder.
 
-> **TIP**:
+> **TIP**
+>
 > The module code is available in the `solutions/modules` folder of this exercise.
 >
 > cp <path_to_workshop_repo>/workshops/exercises/ansible_collections/1-create-collections/modules/> demo_hello.py plugins/modules/
@@ -393,7 +396,8 @@ not meant to be executed independently.
 
 The last step of this exercise will be focused on a role creation inside the custom collection. We will deploy a basic role that uses the previous module to dynamically generates greetings inside an index.html and build it inside an OCI image with podman. The image will be finally pushed into a customizable private registry.
 
-> **TIP**:
+> **TIP**
+>
 > If you want to speed up the lab you can copy the completed role from the exercise `solutions/roles` folder.
 
 Generate the new role skeleton using the `ansible-galaxy init` command:
@@ -454,7 +458,8 @@ Create the following tasks in the `roles/demo_image_builder/tasks/main.yml` file
 
 Notice the usage of the `demo_hello` module, installed in the collection, to generate the greeting string.
 
-> **NOTE**:
+> **NOTE**
+>
 > When a collection role calls a module in the same collection namespace, the module is automatically resolved.
 
 Create the following variables in the `roles/demo_image_builder/defaults/main.yml`:
@@ -582,14 +587,16 @@ cat > playbook.yml << EOF
 EOF
 ```
 
-> **TIP**:
+> **TIP**
+>
 > Replace the `<YOUR_USERNAME>` field with a valid quay.io username.
 
 
-> **NOTE**:
+> **NOTE**
+>
 > Before running the test playbook, be sure to have a valid auth token to authenticate to > the registry. You can authenticate by running the following command and passing valid credentials > that will generate a token stored in the `~/.docker/config.json` file:
 >
-> podman login quay.io
+> `podman login quay.io`
 
 
 #### Running the test playbook
