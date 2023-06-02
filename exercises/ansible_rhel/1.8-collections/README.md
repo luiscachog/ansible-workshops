@@ -683,6 +683,6 @@ $ curl localhost:8080
 ---
 **Navigation**
 <br>
-[Previous Exercise](../1.7-role) - [Next Exercise](../2.1-intro/)
+[Previous Exercise](../1.7-role) - [Next Exercise](../1.9-execution-environments/)
 
 [Click here to return to the Ansible for Red Hat Enterprise Linux Workshop](../README.md#section-1---ansible-engine-exercises)
