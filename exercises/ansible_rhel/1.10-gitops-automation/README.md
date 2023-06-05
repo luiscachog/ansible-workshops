@@ -8,6 +8,9 @@
 - [Workshop Exercise - Check the Prerequisites](#workshop-exercise---check-the-prerequisites)
   - [Table of Contents](#table-of-contents)
   - [Objective](#objective)
+  - [Introduction](#introduction)
+    - [Understanding Execution Environments](#understanding-execution-environments)
+    - [Understanding GitOps](#understanding-gitops)
   - [Guide](#guide)
     - [Your Lab Environment](#your-lab-environment)
     - [Step 1 - Access the Environment](#step-1---access-the-environment)
@@ -18,18 +21,41 @@
 
 ## Objective
 
-* Understand the lab topology and how to access the environment.
-* Understand how to work the workshop exercises
-* Understand challenge labs
+This workshop aims to provide participants with an understanding of how EEs can be customized, created, and pushed to a central image registry using Openshift Pipelines. The following topics will be covered:
 
-These first few lab exercises will be exploring the command-line utilities of the Ansible Automation Platform.  This includes
+- Demonstrating the steps involved in customizing EEs using a Git repository.
+- Demonstrating the steps involved in creating EEs using Openshift Pipelines.
+- Demonstrating the steps involved in scanning and pushing EEs to an image registry (Private Ansible Automation Hub).
+- Demonstrating the steps involved in using custom EEs pushed to the registry to run job templates from the Ansible Automation Controller.
 
-- [ansible-navigator](https://github.com/ansible/ansible-navigator) - a command line utility and text-based user interface (TUI) for running and developing Ansible automation content.
-- [ansible-core](https://docs.ansible.com/core.html) - the base executable that provides the framework, language and functions that underpin the Ansible Automation Platform.  It also includes various cli tools like `ansible`, `ansible-playbook` and `ansible-doc`.  Ansible Core acts as the bridge between the upstream community with the free and open source Ansible and connects it to the downstream enterprise automation offering from Red Hat, the Ansible Automation Platform.
-- [Execution Environments](https://docs.ansible.com/automation-controller/latest/html/userguide/execution_environments.html) - not specifically covered in this workshop because the built-in Ansible Execution Environments already included all the Red Hat supported collections which includes all the collections we use for this workshop.  Execution Environments are container images that can be utilized as Ansible execution.
-- [ansible-builder](https://github.com/ansible/ansible-builder) - not specifically covered in this workshop, `ansible-builder` is a command line utility to automate the process of building Execution Environments.
+## Introduction
 
-If you need more information on new Ansible Automation Platform components bookmark this landing page [https://red.ht/AAP-20](https://red.ht/AAP-20)
+The use of containers in automation is driven by the principles of reproducibility and consistency. Red Hat Ansible Automation Platform (AAP) also incorporates these principles through the use of YAML-formatted playbooks, allowing for uniform setup and configuration of thousands of instances.
+
+By utilizing containers and maintaining a single source of truth, organizations can utilize the GitOps operational framework to apply DevOps best practices, such as version control, collaboration, compliance, and CI/CD tooling, to infrastructure automation.
+
+In this workshop, we will explore the process of customizing, creating, and pushing EEs to a central image registry using OpenShift Pipelines. Participants will learn how to use a Git repository to customize EEs, create EEs using OpenShift Pipelines, scan and push EEs to a central image registry, and run job templates from the Automation Controller using custom EEs.
+
+### Understanding Execution Environments
+
+Automation Execution Environments (EEs) are container images on which all automation in Red Hat Ansible Automation Platform is run. They provide a defined, consistent, and portable environment for executing automation, and simplify the administration of Ansible Automation Platform for the platform administrator.
+
+The best way to build EEs is by relying on a new tool provided by Red Hat® Ansible® Automation Platform, the `ansible-builder` command.
+
+### Understanding GitOps
+
+Infrastructure automation is essential to meet the demands of modern infrastructure. GitOps is a method used to automate the process of provisioning infrastructure, in this case, custom EEs. Similar to how developers use application source code, operations teams that adopt GitOps use configuration files stored as code (IaC - Infrastructure as Code) to generate a consistent infrastructure environment every time it is deployed.
+
+The GitOps workflow consists of four key components:
+
+- Git repository
+- CI/CD pipeline
+- A deployment tool
+- A monitoring system
+
+The Git repository serves as the source of truth for the configuration and code, the CI/CD pipeline is responsible for building, testing, and deploying the application, the deployment tool manages the application resources in the target environment, and the monitoring system tracks the status and performance of the deployed application.
+
+![Ansible GitOps](ansible-gitops.png "Ansible GitOps")
 
 ## Guide
 
