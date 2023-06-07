@@ -73,9 +73,35 @@ Using your expertise in OpenShift and Ansible Automation Platform, you will inve
 Point your browser to the URL you were given, similar to `https://student<X>.<workshopname>.demoredhat.com` (replace `<X>` with your student number and `workshopname` with the name of your current workshop) and log in as `admin`. The password will be provided by the instructor.
 
 2. Navigate to the **Templates** menu and chose the failing **Job Template** `multitier-app-deployer`
-![Failed multitier-app-deployer Job Template](images/job-template-multi-tier-app-failed.png "Failed multitier-app-deployer Job Template")
+![Job Template multitier-app-deployer](images/job-template-multi-tier-app.png "Job Template multitier-app-deployer")
 
-3. Launch the top Template multitier-app-deployer via the Rocket Icon
+3. Launch the top Template `multitier-app-deployer` via the Rocket Icon (🚀)
+
+4. You will be taken to the **Output** screen, where after a short delay, as the Project Syncs and the Execution Environment starts, you will see a failure very early in the process.
+
+![Job run multitier-app-deployer Failed](images/job-run-multi-tier-app-failed.png "Job run multitier-app-deployer Failed")
+
+> **NOTE**
+>
+>  The `community.postgresql.postgresql_db` module is used in the playbook shown in the error, which is missing in the default execution environment.
+>
+
+There are two ways that a missing collection error like this can be resolved.
+Both involve adding the dependency to a `requirements.yml` file in 1 of 2 locations.
+
+- Add it to the playbook repository itself, and the Execution Environment will dynamically download it at runtime.
+  - This is, arguably, an easy but inefficient fix, which will download it every single Job run
+  - It introduces an external dependency where an outage could cause job failure
+- Add the dependency to the Execution Environment build repository
+
+Wanting a more permanent fix, avoiding dynamic downloads we will choose the latter.
+
+> **NOTE**
+> n the development stage it is quite common to add collections in the deployer repository `requirements.yml` and additionally this can be used to extend an existing Execution Environment. There is a strong argument to be made that these should either come from a known good source such as Ansible Galaxy or be brought "behind the firewall" and hosted internally.
+>
+
+
+
 
 
 ---
