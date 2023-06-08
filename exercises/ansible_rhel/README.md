@@ -19,9 +19,8 @@ After finishing this lab you are ready to start using Ansible for your automatio
   - [Time planning](#time-planning)
   - [Lab Diagram](#lab-diagram)
   - [Section 1 - Command-line Ansible Exercises](#section-1---command-line-ansible-exercises)
-    - [Section 1 - Advanced Topics](#section-1---advanced-topics)
   - [Section 2 - Ansible Automation Platform Exercises](#section-2---ansible-automation-platform-exercises)
-  - [Section 3 - Ansible Automation with GitOps](#section-3---ansible-automation-with-gitops)
+  - [Section 3 - Advanced Topics](#section-3---advanced-topics)
   - [Supplemental Exercises](#supplemental-exercises)
 
 ## Presentations
@@ -54,12 +53,6 @@ Having said that, the exercises themselves should take roughly 4-5 hours. The fi
 * [Exercise 1.6 - Templates](1.6-templates)
 * [Exercise 1.7 - Roles](1.7-role)
 
-### Section 1 - Advanced Topics
-
-* [Exercise 1.8 - Collections](1.8-collections)
-* [Exercise 1.9 - Execution Environments](1.9-execution-environments)
-* [Exercise 1.10 - Introduction to GitOps Automation](1.10-gitops-automation)
-
 ## Section 2 - Ansible Automation Platform Exercises
 
 * [Exercise 2.1 - Introduction to automation controller](2.1-intro)
@@ -70,6 +63,11 @@ Having said that, the exercises themselves should take roughly 4-5 hours. The fi
 * [Exercise 2.6 - Workflows](2.6-workflows)
 * [Exercise 2.7 - Wrap up](2.7-wrap)
 
+## Section 3 - Advanced Topics
+
+* [Exercise 3.1 - Collections](3.1-collections)
+* [Exercise 3.2 - Execution Environments](3.2-execution-environments)
+* [Exercise 3.3 - Introduction to GitOps Automation](3.3-gitops-automation)
 
 
 ## Supplemental Exercises

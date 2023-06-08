@@ -281,6 +281,6 @@ podman images
 ---
 **Navigation**
 <br>
-[Previous Exercise](../1.8-collections) - [Next Exercise](../2.1-intro/)
+[Previous Exercise](../3.1-collections) - [Next Exercise](../3.3-gitops-automation/)
 
 [Click here to return to the Ansible for Red Hat Enterprise Linux Workshop](../README.md#section-1---ansible-engine-exercises)

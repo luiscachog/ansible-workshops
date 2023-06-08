@@ -97,8 +97,11 @@ Both involve adding the dependency to a `requirements.yml` file in 1 of 2 locati
 Wanting a more permanent fix, avoiding dynamic downloads we will choose the latter.
 
 > **NOTE**
-> n the development stage it is quite common to add collections in the deployer repository `requirements.yml` and additionally this can be used to extend an existing Execution Environment. There is a strong argument to be made that these should either come from a known good source such as Ansible Galaxy or be brought "behind the firewall" and hosted internally.
 >
+> In the development stage it is quite common to add collections in the deployer repository `requirements.yml` and additionally this can be used to extend an existing Execution Environment. There is a strong argument to be made that these should either come from a known good source such as Ansible Galaxy or be brought "behind the firewall" and hosted internally.
+>
+
+5.
 
 
 
