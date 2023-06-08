@@ -47,11 +47,11 @@ and executed in complex Ansible-based projects.
 
 #### Preparing the exercise environment
 
-Create a directory in your lab named `my-collections` and cd into it. This directory will be used during the whole exercise.
+On your Ansible control node terminal, create a directory in named `ansible-collections` and change directories into it. This directory will be used during the whole exercise.
 
 ```bash
-mkdir my-collections
-cd my-collections
+[student@ansible-1 ~]$ mkdir ansible-collections
+[student@ansible-1 ~]$ cd ansible-collections
 ```
 
 Collection have two default lookup paths that are searched:
@@ -63,29 +63,53 @@ Collection have two default lookup paths that are searched:
 >
 > Users can customized the collections path by modifying the `collections_path` key in the `ansible.cfg` file or by setting the environment variable `ANSIBLE_COLLECTIONS_PATHS` with the desired search path.
 
-
-
 #### Installing in the default collections path
 
-First, we demonstrate how to install a collection in the user scoped path.For the sake of simplicity we are going to use the collection [newswangerd.collection_demo](https://galaxy.ansible.com/newswangerd/collection_demo), a basic collection created for demo purposes.
+First, we demonstrate how to install a collection in the **user scoped path**. For the sake of simplicity we are going to use the collection [newswangerd.collection_demo](https://galaxy.ansible.com/newswangerd/collection_demo), a basic collection created for demo purposes.
 
 It contains basic roles and a very simple module and is a good example to understand how a collection works without getting involved in modules or roles logic.
 
-Install the collection using the command `ansible galaxy collection install` with no extra options:
+1. Verify the `COLLECTIONS_PATH` value
 
 ```bash
-$ ansible-galaxy collection install newswangerd.collection_demo
+[student@ansible-1 ~]$ ansible-config dump | grep COLLECTIONS_PATHS
+COLLECTIONS_PATHS(default) = ['/home/student/.ansible/collections', '/usr/share/ansible/collections']
+```
+
+2. Install the collection using the command `ansible galaxy collection install` with no extra options:
+
+```bash
+[student@ansible-1 ~]$ ansible-galaxy collection install newswangerd.collection_demo
+Starting galaxy collection install process
 Process install dependency map
 Starting collection install process
-Installing 'newswangerd.collection_demo:1.0.10' to '/home/<username>/.ansible/collections/ansible_collections/newswangerd/collection_demo'
+Downloading https://galaxy.ansible.com/download/newswangerd-collection_demo-1.0.11.tar.gz to /home/student/.ansible/tmp/ansible-local-19580sxf0ays1/tmpm8dxbc7a/newswangerd-collection_demo-1.0.11-d93zigt9
+Installing 'newswangerd.collection_demo:1.0.11' to '/home/student/.ansible/collections/ansible_collections/newswangerd/collection_demo'
+newswangerd.collection_demo:1.0.11 was installed successfully
 ```
 
 #### Installing in a custom collections path
 
 Install the collection in the current working directory using the `-p` flag followed by the custom installation path.
 
+1. Change directories to the one created earlier `ansible-collections` if haven't done yet
+
 ```bash
-ansible-galaxy collection install -p . newswangerd.collection_demo
+[student@ansible-1 ~]$ cd ~/ansible-collections
+```
+
+2. Install the `newswangerd.collection_demo` collection in the current directory
+
+```bash
+[student@ansible-1 ~]$ ansible-galaxy collection install -p . newswangerd.collection_demo
+Starting galaxy collection install process
+[WARNING]: The specified collections path '/home/student/ansible-collections' is not part of the configured Ansible collections paths '/home/student/.ansible/collections:/usr/share/ansible/collections'. The installed collection will not be picked up in an Ansible run, unless within a playbook-adjacent
+collections directory.
+Process install dependency map
+Starting collection install process
+Downloading https://galaxy.ansible.com/download/newswangerd-collection_demo-1.0.11.tar.gz to /home/student/.ansible/tmp/ansible-local-22953_6kgwfum/tmp0l121xwc/newswangerd-collection_demo-1.0.11-c8a0w75g
+Installing 'newswangerd.collection_demo:1.0.11' to '/home/student/ansible-collections/ansible_collections/newswangerd/collection_demo'
+newswangerd.collection_demo:1.0.11 was installed successfully
 ```
 
 > **NOTE**
@@ -93,47 +117,45 @@ ansible-galaxy collection install -p . newswangerd.collection_demo
 > When installing on custom paths not included in the collections search path a standard warning message is issued:
 >
 > [WARNING]: The specified collections path '/home/<username>/my-collections' is not part of the configured Ansible collections paths
-> '/home/<username>/.ansible/collections:/usr/share/ansible/collections'. The installed collection won't be picked up in an Ansible run.
-
+> '/home/<username>/.ansible/collections:/usr/share/ansible/collections'. The installed collection won't be picked up in an Ansible run, unless within a playbook-adjacent
 
 The installed path follows the standard pattern `ansible_collections/<author>/<collection>`.
 
-Run the `tree` command to inspect the contents:
+3. On the current directory ()`ansible-collections`), run the `tree` command to inspect the contents:
 
 ```bash
-$ tree
+[student@ansible-1 ~]$ tree
 .
 └── ansible_collections
-    └── newswangerd
-        └── collection_demo
-            ├── docs
-            │   └── test_guide.md
-            ├── FILES.json
-            ├── MANIFEST.json
-            ├── plugins
-            │   └── modules
-            │       └── real_facts.py
-            ├── README.md
-            ├── releases
-            │   ├── newswangerd-collection_demo-1.0.0.tar.gz
-            │   ├── newswangerd-collection_demo-1.0.1.tar.gz
-            │   ├── newswangerd-collection_demo-1.0.2.tar.gz
-            │   ├── newswangerd-collection_demo-1.0.3.tar.gz
-            │   ├── newswangerd-collection_demo-1.0.4.tar.gz
-            │   └── newswangerd-collection_demo-1.0.5.tar.gz
-            └── roles
-                ├── deltoid
-                │   ├── meta
-                │   │   └── main.yaml
-                │   ├── README.md
-                │   └── tasks
-                │       └── main.yml
-                └── factoid
-                    ├── meta
-                    │   └── main.yaml
-                    ├── README.md
-                    └── tasks
-                        └── main.yml
+    ├── newswangerd
+    │   └── collection_demo
+    │       ├── docs
+    │       │   └── test_guide.md
+    │       ├── FILES.json
+    │       ├── MANIFEST.json
+    │       ├── meta
+    │       │   └── runtime.yml
+    │       ├── plugins
+    │       │   └── modules
+    │       │       └── real_facts.py
+    │       ├── README.md
+    │       └── roles
+    │           ├── deltoid
+    │           │   ├── meta
+    │           │   │   └── main.yaml
+    │           │   ├── README.md
+    │           │   └── tasks
+    │           │       └── main.yml
+    │           └── factoid
+    │               ├── meta
+    │               │   └── main.yaml
+    │               ├── README.md
+    │               └── tasks
+    │                   └── main.yml
+    └── newswangerd.collection_demo-1.0.11.info
+        └── GALAXY.yml
+
+15 directories, 13 files
 ```
 
 #### Installing collections from a requirements file
@@ -152,28 +174,81 @@ collections:
 
   - name: ansible.posix
     version: 1.2.0
-  - name: redhat.rhv
-    version: 1.4.1
+  - name: cisco.intersight
+    version: 1.0.27
 
-  - name: /tmp/community-dns-1.2.0.tar.gz
+  # - name: git@github.com:ansible-collections/community.mysql.git
 
-  - name: http://www.example.com/redhat-insights-1.0.5.tar.gz
+  # - name: /tmp/community-dns-1.2.0.tar.gz
 
-  - name: git@github.com:ansible-collections/community.mysql.git
+  # - name: http://www.example.com/redhat-insights-1.0.5.tar.gz
 ```
 
 You can process the file with the `ansible-galaxy` command to install all of those collections.
 Use the `--requirements-file` (or `-r`) option to provide the `requirements.yml` file to the command.
 
+1. Let's create a `requirements.yml` file with the example content
+
 ```bash
-ansible-galaxy collections install -r requirements.yml
+[student@ansible-1 ~]$ echo "---
+collections:
+  - name: community.crypto
+  - name: ansible.netcommon
+
+  - name: ansible.posix
+    version: 1.2.0
+  - name: cisco.intersight
+    version: 1.0.27
+
+  # - name: git@github.com:ansible-collections/community.mysql.git
+
+  # - name: /tmp/community-dns-1.2.0.tar.gz
+
+  # - name: http://www.example.com/redhat-insights-1.0.5.tar.gz" > requirements.yml
+[student@ansible-1 ansible-collections]$
+```
+
+2. Install the collections from the `requirements.yml` file
+
+```bash
+[student@ansible-1 ~]$ ansible-galaxy collection install -r requirements.yml
+Starting galaxy collection install process
+Process install dependency map
+Starting collection install process
+Downloading https://galaxy.ansible.com/download/ansible-posix-1.2.0.tar.gz to /home/student/.ansible/tmp/ansible-local-321171nekfxpt/tmpgcdo_qmn/ansible-posix-1.2.0-7fq6ky0x
+Installing 'ansible.posix:1.2.0' to '/home/student/.ansible/collections/ansible_collections/ansible/posix'
+Downloading https://galaxy.ansible.com/download/cisco-intersight-1.0.27.tar.gz to /home/student/.ansible/tmp/ansible-local-321171nekfxpt/tmpgcdo_qmn/cisco-intersight-1.0.27-g5zdsv25
+ansible.posix:1.2.0 was installed successfully
+Installing 'cisco.intersight:1.0.27' to '/home/student/.ansible/collections/ansible_collections/cisco/intersight'
+Downloading https://galaxy.ansible.com/download/ansible-netcommon-5.1.1.tar.gz to /home/student/.ansible/tmp/ansible-local-321171nekfxpt/tmpgcdo_qmn/ansible-netcommon-5.1.1-9mwjph0f
+cisco.intersight:1.0.27 was installed successfully
+Installing 'ansible.netcommon:5.1.1' to '/home/student/.ansible/collections/ansible_collections/ansible/netcommon'
+Downloading https://galaxy.ansible.com/download/ansible-utils-2.10.3.tar.gz to /home/student/.ansible/tmp/ansible-local-321171nekfxpt/tmpgcdo_qmn/ansible-utils-2.10.3-wso4vwam
+ansible.netcommon:5.1.1 was installed successfully
+Installing 'ansible.utils:2.10.3' to '/home/student/.ansible/collections/ansible_collections/ansible/utils'
+Downloading https://galaxy.ansible.com/download/community-crypto-2.13.1.tar.gz to /home/student/.ansible/tmp/ansible-local-321171nekfxpt/tmpgcdo_qmn/community-crypto-2.13.1-reql88el
+ansible.utils:2.10.3 was installed successfully
+Installing 'community.crypto:2.13.1' to '/home/student/.ansible/collections/ansible_collections/community/crypto'
+community.crypto:2.13.1 was installed successfully
 ```
 
 You can also use the `ansible-galaxy collection list` command to list the collections
 available in the directories specified by your current `collections_paths` Ansible configuration directive on your control node.
 
+3. Verify your installed collections
+
 ```bash
-ansible-galaxy collection list
+[student@ansible-1 ansible-collections]$ ansible-galaxy collection list
+
+# /home/student/.ansible/collections/ansible_collections
+Collection                  Version
+--------------------------- -------
+ansible.netcommon           5.1.1
+ansible.posix               1.2.0
+ansible.utils               2.10.3
+cisco.intersight            1.0.27
+community.crypto            2.13.1
+newswangerd.collection_demo 1.0.11
 ```
 
 #### Inspecting the contents of the collection
@@ -217,7 +292,6 @@ When a collection is downloaded with the `ansible-galaxy collection install` two
 - `MANIFEST.json`, holding additional Galaxy metadata in JSON format.
 - `FILES.json`, a JSON object containing all the files SHA256 checksum.
 
-
 ### Step 2 - Creating collections from the command line
 
 Users can create their own collections and populate them with roles, playbook, plugins and modules.
@@ -225,10 +299,12 @@ User defined collections skeleton can be created manually or it can be authored 
 `ansible-galaxy collection init` command. This will create a standard skeleton that can be
 customized lately.
 
-Create the following collection:
+1. Change directories to the one created earlier `ansible-collections` if haven't done yet
+
+2. Create the a custom collection:
 
 ```bash
-ansible-galaxy collection init --init-path ansible_collections redhat.workshop_demo_collection
+[student@ansible-1 ansible-collections]$ ansible-galaxy collection init --init-path ansible_collections redhat.workshop_demo_collection
 ```
 
 The `--init-path` flag is used to define a custom path in which the skeleton will be initialized.
@@ -238,14 +314,18 @@ the `workshop_demo_collection` in the `redhat` namespace.
 The command created the following skeleton:
 
 ```bash
-$ tree ansible_collections/redhat/workshop_demo_collection/
+[student@ansible-1 ansible-collections]$ tree ansible_collections/redhat/workshop_demo_collection/
 ansible_collections/redhat/workshop_demo_collection/
 ├── docs
 ├── galaxy.yml
+├── meta
+│   └── runtime.yml
 ├── plugins
 │   └── README.md
 ├── README.md
 └── roles
+
+4 directories, 4 files
 ```
 
 The skeleton is really minimal. Besides the template README files, a template `galaxy.yml` file is created to define Galaxy metadata.
@@ -256,23 +336,49 @@ A good practice is, necessary if we want to publish our collection in Galaxy, is
 a Git repository in the collection.
 
 ```bash
-cd ansible_collections/redhat/workshop_demo_collection && git init .
+[student@ansible-1 ansible-collections]$ cd ansible_collections/redhat/workshop_demo_collection && git init .
+Initialized empty Git repository in /home/student/ansible-collections/ansible_collections/redhat/workshop_demo_collection/.git/
 ```
 
 When changed, files will be added to the staging area with the `git add` and committed with
 the `git commit` commands.
 
 ```bash
-git add *
-git commit -m "Initial commit in my demo collection"
+[student@ansible-1 workshop_demo_collection]$ git add *
+[student@ansible-1 workshop_demo_collection]$ git commit -m "Initial commit in my demo collection"
 ```
+
+> **NOTE**
+>
+> When committing with `git` with not a minimal configuration on `~/.gitconfig` a standard warning message is issued:
+>
+> Author identity unknown
+>
+> *** Please tell me who you are.
+>
+> Run
+>
+>  git config --global user.email "you@example.com"
+>  git config --global user.name "Your Name"
+>
+> to set your account's default identity.
+> Omit --global to set the identity only in this repository.
+>
+> fatal: empty ident name (for <student@ansible-1.example.com>) not allowed
 
 To publish the collection on GitHub a remote should be added:
 
 ```bash
-git remote add origin https://github.com/<user>/workshop_demo_collection.git
-git push
+[student@ansible-1 workshop_demo_collection]$ git branch -M main
+[student@ansible-1 workshop_demo_collection]$ git remote add origin https://github.com/<user>/workshop_demo_collection.git
+[student@ansible-1 workshop_demo_collection]$ git push --set-upstream origin main
 ```
+
+Now, you are going to be authenticate it against GitHub.
+
+![VSCode authentication for GitHub](images/vscode-github-auth.png "VSCode authentication for GitHub")
+
+
 
 The `workshop_demo_collection` repository must be already present on GitHub. To create a new repository follow the official GitHub [documentation](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-new-repository).
 
