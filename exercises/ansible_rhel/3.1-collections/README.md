@@ -340,8 +340,11 @@ a Git repository in the collection.
 Initialized empty Git repository in /home/student/ansible-collections/ansible_collections/redhat/workshop_demo_collection/.git/
 ```
 
-When changed, files will be added to the staging area with the `git add` and committed with
-the `git commit` commands.
+> **NOTE**
+>
+> The `workshop_demo_collection` repository must be already present on GitHub. To create a new repository follow the official GitHub [documentation](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-new-repository).
+
+When changed, files will be added to the staging area with the `git add` and committed with the `git commit` commands.
 
 ```bash
 [student@ansible-1 workshop_demo_collection]$ git add *
@@ -376,11 +379,9 @@ To publish the collection on GitHub a remote should be added:
 
 Now, you are going to be authenticate it against GitHub.
 
-![VSCode authentication for GitHub](images/vscode-github-auth.png "VSCode authentication for GitHub")
+![VSCode authentication for GitHub](images/vscode-github-auth-1.png "VSCode authentication for GitHub")
 
-
-
-The `workshop_demo_collection` repository must be already present on GitHub. To create a new repository follow the official GitHub [documentation](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-new-repository).
+![VSCode authentication for GitHub](images/vscode-github-auth-2.png "VSCode authentication for GitHub")
 
 ### Step 3 - Adding custom modules and plugins to the collection
 
