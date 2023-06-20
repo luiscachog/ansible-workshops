@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  become: true
+  vars:
+    image_registry: quay.io
+    registry_username: <YOUR_USERNAME>
+    friend_name: Heisenberg
+  tasks:
+    - import_role:
+        name: redhat.workshop_demo_collection.demo_image_builder

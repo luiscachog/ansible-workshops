@@ -47,20 +47,200 @@ An automation execution environment consists of the following:
 Use the automation content navigator to list and inspect the automation execution environments available on the system. To do so, run the `ansible-navigator images` command:
 
 ```bash
-ansible-navigator images
+[student@ansible-1 ~]$ ansible-navigator images
+
+  Image                                                                           Tag                                       Execution environment                                                                        Created                                               Size
+0│ee-supported-rhel8                                                              1.0.0-208                                 True                                                                                         6 months ago                                          1.66 GB
+
+
+
+^b/PgUp page up                                       ^f/PgDn page down                                       ↑↓ scroll                                       esc back                                       [0-9] goto                                       :help help
 ```
 
-From here, we can inspect the execution environment. For example, pressing 2 will show the details of the execution environment.
+From here, we can inspect the execution environment.
+To select the existing Execution Environment, we need to press `**0** ee-supported-rhel8`, and then pressing `**0** Image information` will show the details of the execution environment.
+
+If we need to check the collections or ansible information from the image, we can press `**2** Ansible version and collections`
+
+
+```bash
+ 0│---
+ 1│ansible:
+ 2│  collections:
+ 3│    details:
+ 4│      amazon.aws: 5.1.0
+ 5│      ansible.controller: 4.3.0
+ 6│      ansible.netcommon: 4.1.0
+ 7│      ansible.network: 1.2.0
+ 8│      ansible.posix: 1.3.0
+ 9│      ansible.security: 1.0.0
+10│      ansible.snmp: 1.0.1
+11│      ansible.utils: 2.7.0
+12│      ansible.windows: 1.12.0
+13│      ansible.yang: 1.0.0
+14│      arista.eos: 6.0.0
+15│      cisco.asa: 4.0.0
+16│      cisco.ios: 4.1.0
+17│      cisco.iosxr: 4.0.2
+18│      cisco.nxos: 4.0.0
+19│      cloud.common: 2.1.2
+20│      frr.frr: 2.0.0
+21│      ibm.qradar: 2.1.0
+22│      junipernetworks.junos: 4.0.0
+23│      kubernetes.core: 2.3.2
+24│      openvswitch.openvswitch: 2.1.0
+25│      redhat.insights: 1.0.7
+26│      redhat.openshift: 2.2.0
+27│      redhat.rhv: 2.1.0
+28│      redhat.satellite: 3.3.0
+29│      servicenow.itsm: 1.3.3
+30│      splunk.es: 2.1.0
+31│      trendmicro.deepsec: 2.0.0
+32│      vmware.vmware_rest: 2.2.0
+33│      vyos.vyos: 4.0.0
+34│  version:
+35│    details: ansible [core 2.14.1]
+```
+> **NOTE**
+>
+> That the Execution Environment Image `ee-supported-rhel8` is providing us `ansible-core 2.14.1` and a minimal set of collections.
+>
+
+To configure the default Execution Environment Image you can edit the file `~/.ansible-navigator.yml` under the `execution-environment/image` section, for this specific environment looks like:
+
+```yaml
+---
+ansible-navigator:
+  ansible:
+    inventory:
+      entries:
+      - /home/student/lab_inventory/hosts
+
+  execution-environment:
+    image: registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8:1.0.0-208
+    enabled: true
+    container-engine: podman
+    pull:
+      policy: missing
+    volume-mounts:
+    - src: "/etc/ansible/"
+      dest: "/etc/ansible/"
+```
 
 #### Using Automation Execution Environments
 
-The `ansible-navigator run` command runs your playbooks in an automation execution environment.
-
-That tool uses the supported automation execution environment by default, but you can select a different one by specifying the `--execution-environment-image` (or `--eei`) option. The following example shows how to run a playbook using the compatibility automation execution environment:
+The `ansible-navigator run` command runs your playbooks in an automation execution environment, the default one is the one defined on the file `~/.ansible-navigator.yml`, but you can select a different one by specifying the `--execution-environment-image` (or `--eei`) option. The q following example shows how to run a playbook using the compatibility automation execution environment:
 
 ```bash
-ansible-navigator run oldplaybook.yml --eei registry.redhat.io/ansible-automation-platform-23/ee-29-rhel8:1.0
+[student@ansible-1 ~]$ echo "---
+- name: Update web servers
+  hosts: web
+  become: true
+
+  tasks:
+  - name: Ensure apache is at the latest version
+    yum:
+      name: httpd
+      state: latest
+  - name: Ensure the apache service is started and enabled
+    systemd:
+      name: httpd
+      state: started
+      enabled: true" old-playbook.yml
 ```
+
+> **NOTE**
+>
+> The tasks on the `old-playbook.yml` file are **NOT** using the FQCN (Full Qualify Collection Name) for the modules, that is the *old way* to write ansible playbooks, as the new method includes the FQCN for each module, for this example, the `yum` module should become `ansible.builtin.yum` and `systemd` becomes `ansible.builtin.systemd`
+>
+
+The next command is going to run the `old-playbook.yml` using an Execution Environment that uses an older version of ansible, in this case `Ansible 2.9`
+
+```bash
+[student@ansible-1 ~]$ ansible-navigator run oldplaybook.yml --eei registry.redhat.io/ansible-automation-platform-23/ee-29-rhel8:1.0
+----------------------------------------------------------------------------------------------------
+Execution environment image and pull policy overview
+----------------------------------------------------------------------------------------------------
+Execution environment image name:     registry.redhat.io/ansible-automation-platform-23/ee-29-rhel8:1.0
+Execution environment image tag:      1.0
+Execution environment pull arguments: None
+Execution environment pull policy:    missing
+Execution environment pull needed:    True
+----------------------------------------------------------------------------------------------------
+Updating the execution environment
+----------------------------------------------------------------------------------------------------
+Running the command: podman pull registry.redhat.io/ansible-automation-platform-23/ee-29-rhel8:1.0
+Trying to pull registry.redhat.io/ansible-automation-platform-23/ee-29-rhel8:1.0...
+Getting image source signatures
+Checking if image destination supports signatures
+Copying blob bcccb9fc293e done
+Copying blob 2ad3b9180fba done
+Copying blob 78159f5d6288 done
+Copying blob 28ff5ee6facb done
+Copying config 58c796a146 done
+Writing manifest to image destination
+Storing signatures
+58c796a146e35be2d61a175abadeb5ad9a5f76189b7d9e4285ad1d56a52e3731
+
+PLAY [Update web servers] ******************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [node1]
+ok: [node2]
+ok: [node3]
+
+TASK [Ensure apache is at the latest version] **********************************
+changed: [node1]
+changed: [node2]
+changed: [node3]
+
+TASK [Ensure the apachhe service is started and enabled] ***********************
+changed: [node1]
+changed: [node2]
+changed: [node3]
+
+PLAY RECAP *********************************************************************
+node1                      : ok=3    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+node2                      : ok=3    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+node3                      : ok=3    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+> **NOTE**
+>
+> As we don't have the Execution Environment Image `registry.redhat.io/ansible-automation-platform-23/ee-29-rhel8:1.0` in our system, the previous command downloaded it from the Registry `registry.redhat.io` and now we can refer to that Execution Environment Images as `ansible-automation-platform-23/ee-29-rhel8:1.0` or `ee-29-rhel8`
+> Example:
+> ```bash
+>[student@ansible-1 ~]$ ansible-navigator run oldplaybook.yml --eei ee29-rhel8
+>```
+
+To confirm that indeed we are using `ansible 2.9.27` we can run:
+
+```bash
+[student@ansible-1 ~]$ ansible-navigator images
+Image                                                                           Tag                                       Execution environment                                                                        Created                                               Size
+0│ee-29-rhel8                                                                     1.0                                       True                                                                                         12 days ago                                           888 MB
+1│ee-supported-rhel8                                                              1.0.0-208                                 True                                                                                         6 months ago                                          1.66 GB
+```
+
+Then press `**0** ee-29-rhel8` and then `**2** Ansible version and collections`
+
+```
+ 0│---
+ 1│ansible:
+ 2│  collections:
+ 3│    details: This command is not supported with ansible 2.9.
+ 4│    errors:
+ 5│    - |-
+ 6│      usage: ansible-galaxy collection [-h] COLLECTION_ACTION ...
+ 7│      ansible-galaxy collection: error: argument COLLECTION_ACTION: invalid choice: 'list' (choose from 'init', 'build', 'publish', 'install')
+ 8│  version:
+ 9│    details: ansible 2.9.27
+
+```
+
+
+
+
 
 If the container image is already available on your system, then you can use its short image name: `--eei ee-29-rhel8:1.0` in the preceding example.
 

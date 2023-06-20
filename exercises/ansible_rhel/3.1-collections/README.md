@@ -17,10 +17,11 @@
       - [Inspecting the contents of the collection](#inspecting-the-contents-of-the-collection)
     - [Step 2 - Creating collections from the command line](#step-2---creating-collections-from-the-command-line)
       - [Initializing the Git repository](#initializing-the-git-repository)
-    - [Step 3 - Adding custom modules and plugins to the collection](#step-3---adding-custom-modules-and-plugins-to-the-collection)
-    - [Step 4 - Adding custom roles to the collection](#step-4---adding-custom-roles-to-the-collection)
+    - [Step 3 - Adding custom roles to the collection](#step-3---adding-custom-roles-to-the-collection)
+    - [Step 4 - Adding custom modules and plugins to the collection](#step-4---adding-custom-modules-and-plugins-to-the-collection)
     - [Step 5 - Building and installing collections](#step-5---building-and-installing-collections)
     - [Step 6 - Testing collections locally](#step-6---testing-collections-locally)
+    - [TODO](#todo)
       - [Running the test playbook](#running-the-test-playbook)
       - [Running the local container](#running-the-local-container)
 - [Takeaways](#takeaways)
@@ -336,13 +337,15 @@ A good practice is, necessary if we want to publish our collection in Galaxy, is
 a Git repository in the collection.
 
 ```bash
-[student@ansible-1 ansible-collections]$ cd ansible_collections/redhat/workshop_demo_collection && git init .
+[student@ansible-1 ansible-collections]$ cd ansible_collections/redhat/workshop_demo_collection
+[student@ansible-1 workshop_demo_collection]$ git init .
 Initialized empty Git repository in /home/student/ansible-collections/ansible_collections/redhat/workshop_demo_collection/.git/
 ```
 
 > **NOTE**
 >
-> The `workshop_demo_collection` repository must be already present on GitHub. To create a new repository follow the official GitHub [documentation](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-new-repository).
+> The `workshop_demo_collection` repository must be already present on GitHub.
+> To create a new repository follow the official GitHub [documentation](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-new-repository).
 
 When changed, files will be added to the staging area with the `git add` and committed with the `git commit` commands.
 
@@ -383,30 +386,205 @@ Now, you are going to be authenticate it against GitHub.
 
 ![VSCode authentication for GitHub](images/vscode-github-auth-2.png "VSCode authentication for GitHub")
 
-### Step 3 - Adding custom modules and plugins to the collection
+### Step 3 - Adding custom roles to the collection
+
+We will deploy a basic role that uses the next module (build in step 4) to dynamically generates greetings inside an `index.html` and build it inside an OCI image with podman. The image will be finally pushed into a customizable private registry.
+
+> **NOTE**
+>
+> Change directories to the one created earlier `ansible_collections/redhat/workshop_demo_collection` if haven't done yet
+
+1. Generate the new role skeleton using the `ansible-galaxy init role` command:
+
+```bash
+[student@ansible-1 ansible-collections]$ ansible-galaxy init --init-path roles demo_image_builder
+```
+
+> **TIP**
+>
+> The complete role is available in the `code/roles/tasks` folder of this exercise.
+
+1. Create the following tasks in the `roles/demo_image_builder/tasks/main.yml` file:
+
+```yaml
+---
+# tasks file for demo_image_builder
+- name: Ensure podman is present in the host
+  ansible.builtin.dnf:
+    name: podman
+    state: present
+  become: true
+
+- name: Generate greeting and store result
+  demo_hello:
+    name: "{{ friend_name }}"
+  register: demo_greeting
+
+- name: Create build directory
+  ansible.builtin.file:
+    path: "{{ build_dir_path }}"
+    state: directory
+    mode: 0755
+
+- name: Copy Dockerfile
+  ansible.builtin.copy:
+    src: files/Dockerfile
+    dest: "{{ build_dir_path }}"
+    mode: 0644
+
+- name: Copy custom index.html
+  ansible.builtin.template:
+    src: templates/index.html.j2
+    dest: "{{ build_dir_path }}/index.html"
+    mode: 0644
+
+- name: Build and Push OCI image
+  ansible.builtin.podman_image:
+    name: demo-nginx
+    path: "{{ build_dir_path }}"
+    build:
+      annotation:
+        app: nginx
+        function: demo
+        info: Demo app for Ansible Collections workshop
+      format: oci
+    push: true
+    force: true
+    push_args:
+      dest: "{{ image_registry }}/{{ registry_username }}"
+```
+
+> **NOTE**
+>
+> Notice the usage of the `demo_hello` module, installed in the collection, to generate the greeting string.
+
+> **NOTE**
+>
+> When a collection role calls a module in the same collection namespace, the module is automatically resolved.
+
+3. Create the following variables in the `roles/demo_image_builder/defaults/main.yml`:
+
+> **TIP**
+>
+> The complete defaults file is available in the `code/roles/defaults/` folder of this exercise.
+
+```yaml
+---
+# defaults file for demo_image_builder
+friend_name: "John Doe"
+build_dir_path: "/tmp/demo_nginx_build"
+image_registry: "quay.io"
+registry_username: ""
+```
+
+> **NOTE**
+>
+> Fill the `registry_username` with your **quay.io** username
+
+
+4. Create the Containerfile used in the build process in the `roles/demo_image_builder/files/` folder:
+
+> **TIP**
+>
+> The complete `Containerfile` file is available in the `code/roles/files/` folder of this exercise.
+
+```bash
+[student@ansible-1 ansible-collections]$ cat > roles/demo_nginx/files/Containerfile << EOF
+FROM nginx
+COPY index.html /usr/share/nginx/html
+EOF
+```
+
+5. Create the `index.html.j2` file which acts as a Jinja2 template in `roles/demo_image_builder/templates/` folder:
+
+> **TIP**
+>
+> The complete `index.html.j2` file is available in the `code/roles/templates/` folder of this exercise.
+
+```bash
+[student@ansible-1 ansible-collections]$ cat > roles/demo_image_builder/templates/index.html.j2 << EOF
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Ansible Collections Workshop</title>
+  <meta name="description" content="Demo Nginx">
+  <meta name="author" content="gsalinet@redhat.com">
+
+  <link rel="stylesheet" href="css/styles.css?v=1.0">
+
+</head>
+
+<body>
+  <h1>
+    {{ demo_greeting.fact }}
+  </h1>
+</body>
+</html>
+EOF
+```
+
+The skeleton created by the `ansible-galaxy init` command generates a complete structure files and folder. We can clean up the unused ones:
+
+```bash
+[student@ansible-1 ansible-collections]$ rm -rf roles/demo_image_builder/{handlers,vars,tests}
+```
+
+6. Customize the `roles/demo_image_builder/meta/main.yml` file to define Galaxy metadata and potential dependencies of the role. Use this sample minimal content:
+
+> **TIP**
+>
+> The complete meta file is available in the `code/roles/meta` folder of this exercise.
+
+```yaml
+galaxy_info:
+  author: Ansible Automation Platform Team
+  description: Basic builder role based on podman
+  company: Red Hat
+
+  license: Apache-2.0
+
+  min_ansible_version: 2.9
+
+  platforms:
+    - name: Fedora
+      versions:
+      - 36
+      - 37
+      - 38
+
+  galaxy_tags: ["demo", "podman", "nginx"]
+
+dependencies: []
+```
+
+### Step 4 - Adding custom modules and plugins to the collection
 
 Collections can be customized with different kinds of plugins and modules. For a complete list please refer to the `README.md` file in the `plugins` folder.
 
-In this workshop we are going to create a minimal *Hello World* module and install it in the `plugins/modules` directory.
+In this exercise we are going to create a minimal *Hello World* module and install it in the `plugins/modules` directory.
 
-First, create the `plugins/modules` directory:
+1. First, create the `plugins/modules` directory:
+
+> **NOTE**
+>
+> Change directories to the one created earlier `ansible-collections` if haven't done yet
 
 ```bash
-cd ansible_collections/redhat/workshop_demo_collection
-mkdir plugins/modules
+[student@ansible-1 ansible-collections]$ cd ansible_collections/redhat/workshop_demo_collection
+[student@ansible-1 ansible-collections]$ mkdir plugins/modules
 ```
 
 Create the `demo_hello.py` module in the new folder.
 
 > **TIP**
 >
-> The module code is available in the `solutions/modules` folder of this exercise.
->
-> cp <path_to_workshop_repo>/workshops/exercises/ansible_collections/1-create-collections/modules/> demo_hello.py plugins/modules/
-
+> The module code is available in the `code/modules` folder of this exercise.
 
 ```bash
-vim plugins/modules/demo_hello.py
+[student@ansible-1 ansible-collections]$ vim plugins/modules/demo_hello.py
 ```
 
 The `demo_hello` module says Hello in different languages to custom defined users. Take your time to look at the module code and understand its behavior.
@@ -496,193 +674,53 @@ if __name__ == '__main__':
     main()
 ```
 
-An Ansible module is basically an implementation of the AnsibleModule class created and executed in a minimal function called `run_module()`. As you can see, a module has a `main()` function, like a plain Python executable. Anyway, it is
-not meant to be executed independently.
-
-### Step 4 - Adding custom roles to the collection
-
-The last step of this exercise will be focused on a role creation inside the custom collection. We will deploy a basic role that uses the previous module to dynamically generates greetings inside an index.html and build it inside an OCI image with podman. The image will be finally pushed into a customizable private registry.
-
-> **TIP**
->
-> If you want to speed up the lab you can copy the completed role from the exercise `solutions/roles` folder.
-
-Generate the new role skeleton using the `ansible-galaxy init` command:
-
-```bash
-ansible-galaxy init --init-path roles demo_image_builder
-```
-
-Create the following tasks in the `roles/demo_image_builder/tasks/main.yml` file:
-
-```yaml
----
-# tasks file for demo_image_builder
-- name: Ensure podman is present in the host
-  ansible.builtin.dnf:
-    name: podman
-    state: present
-  become: true
-
-- name: Generate greeting and store result
-  demo_hello:
-    name: "{{ friend_name }}"
-  register: demo_greeting
-
-- name: Create build directory
-  ansible.builtin.file:
-    path: "{{ build_dir_path }}"
-    state: directory
-    mode: 0755
-
-- name: Copy Dockerfile
-  ansible.builtin.copy:
-    src: files/Dockerfile
-    dest: "{{ build_dir_path }}"
-    mode: 0644
-
-- name: Copy custom index.html
-  ansible.builtin.template:
-    src: templates/index.html.j2
-    dest: "{{ build_dir_path }}/index.html"
-    mode: 0644
-
-- name: Build and Push OCI image
-  ansible.builtin.podman_image:
-    name: demo-nginx
-    path: "{{ build_dir_path }}"
-    build:
-      annotation:
-        app: nginx
-        function: demo
-        info: Demo app for Ansible Collections workshop
-      format: oci
-    push: true
-    force: true
-    push_args:
-      dest: "{{ image_registry }}/{{ registry_username }}"
-```
-
-Notice the usage of the `demo_hello` module, installed in the collection, to generate the greeting string.
-
-> **NOTE**
->
-> When a collection role calls a module in the same collection namespace, the module is automatically resolved.
-
-Create the following variables in the `roles/demo_image_builder/defaults/main.yml`:
-
-```yaml
----
-# defaults file for demo_image_builder
-friend_name: "John Doe"
-build_dir_path: "/tmp/demo_nginx_build"
-image_registry: "quay.io"
-registry_username: ""
-```
-
-Create the Dockerfile used in the build process in the `roles/demo_image_builder/files/` folder:
-
-```bash
-cat > roles/demo_nginx/files/ << EOF
-FROM nginx
-COPY index.html /usr/share/nginx/html
-EOF
-```
-
-Create the index.html.j2 file which acts as a Jinja2 template in `roles/demo_image_builder/templates/` folder:
-
-```bash
-cat > roles/demo_image_builder/templates/index.html.j2 << EOF
-<!doctype html>
-
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-
-  <title>Ansible Collections Workshop</title>
-  <meta name="description" content="Demo Nginx">
-  <meta name="author" content="gsalinet@redhat.com">
-
-  <link rel="stylesheet" href="css/styles.css?v=1.0">
-
-</head>
-
-<body>
-  <h1>
-    {{ demo_greeting.fact }}
-  </h1>
-</body>
-</html>
-EOF
-```
-
-The skeleton generates a complete structure files and folder. We can clean up the unused ones:
-
-```bash
-rm -rf roles/demo_image_builder/{handlers,vars,tests}
-```
-
-Customize the `roles/demo_image_builder/meta/main.yml` file to define Galaxy metadata and potential dependencies of the role. Use this sample minimal content:
-
-```yaml
-galaxy_info:
-  author: Ansible Automation Platform Hackathon Team
-  description: Basic builder role based on podman
-  company: Red Hat
-
-  license: Apache-2.0
-
-  min_ansible_version: 2.8
-
-
-  platforms:
-    - name: Fedora
-      versions:
-      - 35
-      - 36
-      - 37
-
-  galaxy_tags: ["demo", "podman"]
-
-dependencies: []
-```
+An Ansible module is basically an implementation of the `AnsibleModule class` created and executed in a minimal function called `run_module()`. As you can see, a module has a `main()` function, like a plain Python executable. Anyway, it is not meant to be executed independently.
 
 ### Step 5 - Building and installing collections
 
-Once completed the creation task we can build the collection and generate a .tar.gz file that can be installed locally or uploaded to Galaxy.
+Once completed the creation task we can build the collection and generate a `.tar.gz` file that can be installed locally or uploaded to Galaxy.
 
-From the collection folder run the following command:
+1. From the collection folder run the following command:
 
 ```bash
-ansible-galaxy collection build
+[student@ansible-1 ansible-collections]$ cd ansible_collections/redhat/workshop_demo_collection
+[student@ansible-1 workshop_demo_collection]$ ansible-galaxy collection build
+Created collection for redhat.workshop_demo_collection at /home/student/ansible-collections/ansible_collections/redhat/workshop_demo_collection/redhat-workshop_demo_collection-1.0.0.tar.gz
+[student@ansible-1 workshop_demo_collection]$ ls
+docs  galaxy.yml  meta  plugins  README.md  redhat-workshop_demo_collection-1.0.0.tar.gz  roles
 ```
 
 The above command will create the file `redhat-workshop_demo_collection-1.0.0.tar.gz`. Notice the semantic x.y.z versioning.
 
-Once created the file can be installed in the `COLLECTIONS_PATH` to be tested locally:
+2. Once created the file can be installed in the `COLLECTIONS_PATH` to be tested locally:
 
 ```bash
-ansible-galaxy collection install redhat-workshop_demo_collection-1.0.0.tar.gz
+[student@ansible-1 workshop_demo_collection]$ ansible-galaxy collection install redhat-workshop_demo_collection-1.0.0.tar.gz
+Starting galaxy collection install process
+Process install dependency map
+Starting collection install process
+Installing 'redhat.workshop_demo_collection:1.0.0' to '/home/student/.ansible/collections/ansible_collections/redhat/workshop_demo_collection'
+redhat.workshop_demo_collection:1.0.0 was installed successfully
 ```
 
 By default the collection will be installed in the `~/.ansible/collections/ansible_collections` folder. Now the collection can be tested locally.
 
 ### Step 6 - Testing collections locally
 
-Create the `my-collections/collections_test` folder to execute the local test:
+1. Create the `ansible-collections/collections_test` folder to execute the local test:
 
 ```bash
-cd ~/my-collections
+cd ~/ansible-collections
 mkdir collections_test
 cd collections_test
 ```
 
-Create a basic `playbook.yml` file with the following contents:
+2. Create a basic `playbook.yml` file with the following contents:
 
 ```bash
 cat > playbook.yml << EOF
 ---
-- hosts: localhost
+- hosts: node2
   remote_user: root
   vars:
     image_registry: quay.io
@@ -701,17 +739,20 @@ EOF
 
 > **NOTE**
 >
-> Before running the test playbook, be sure to have a valid auth token to authenticate to > the registry. You can authenticate by running the following command and passing valid credentials > that will generate a token stored in the `~/.docker/config.json` file:
+> Before running the test playbook, be sure to have a valid auth token to authenticate to the registry.
+> You can authenticate by running the following command and passing valid credentials.
 >
 > `podman login quay.io`
 
+
+### TODO
 
 #### Running the test playbook
 
 Run the test playbook. Since some tasks require privilege escalation use the `-K` option to authenticate via sudo.
 
 ```bash
-$ ansible-playbook playbook.yml -K
+[student@ansible-1 collection_test]$ ansible-navigator run playbook.yml -m stdout
 BECOME password:
 [WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does not match 'all'
 

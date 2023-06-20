@@ -1,0 +1,19 @@
+galaxy_info:
+  author: Ansible Automation Platform Team
+  description: Basic builder role based on podman
+  company: Red Hat
+
+  license: Apache-2.0
+
+  min_ansible_version: 2.9
+
+  platforms:
+    - name: Fedora
+      versions:
+      - 36
+      - 37
+      - 38
+
+  galaxy_tags: ["demo", "podman", "nginx"]
+
+dependencies: []

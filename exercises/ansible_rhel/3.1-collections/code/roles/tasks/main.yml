@@ -1,0 +1,45 @@
+---
+# tasks file for demo_image_builder
+- name: Ensure podman is present in the host
+  ansible.builtin.dnf:
+    name: podman
+    state: present
+  become: true
+
+- name: Generate greeting and store result
+  demo_hello:
+    name: "{{ friend_name }}"
+  register: demo_greeting
+
+- name: Create build directory
+  ansible.builtin.file:
+    path: "{{ build_dir_path }}"
+    state: directory
+    mode: 0755
+
+- name: Copy Dockerfile
+  ansible.builtin.copy:
+    src: files/Dockerfile
+    dest: "{{ build_dir_path }}"
+    mode: 0644
+
+- name: Copy custom index.html
+  ansible.builtin.template:
+    src: templates/index.html.j2
+    dest: "{{ build_dir_path }}/index.html"
+    mode: 0644
+
+- name: Build and Push OCI image
+  ansible.builtin.podman_image:
+    name: demo-nginx
+    path: "{{ build_dir_path }}"
+    build:
+      annotation:
+        app: nginx
+        function: demo
+        info: Demo app for Ansible Collections workshop
+      format: oci
+    push: true
+    force: true
+    push_args:
+      dest: "{{ image_registry }}/{{ registry_username }}"
