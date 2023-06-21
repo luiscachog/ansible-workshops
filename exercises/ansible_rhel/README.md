@@ -65,8 +65,8 @@ Having said that, the exercises themselves should take roughly 4-5 hours. The fi
 
 ## Section 3 - Advanced Topics
 
-* [Exercise 3.1 - Collections](3.1-collections)
-* [Exercise 3.2 - Execution Environments](3.2-execution-environments)
+* [Exercise 3.1 - Execution Environments](3.1-execution-environments)
+* [Exercise 3.2 - Collections](3.2-collections)
 * [Exercise 3.3 - Introduction to GitOps Automation](3.3-gitops-automation)
 
 

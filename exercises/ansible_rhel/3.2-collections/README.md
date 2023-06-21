@@ -831,6 +831,6 @@ $ curl localhost:8080
 ---
 **Navigation**
 <br>
-[Previous Exercise](../1.7-role) - [Next Exercise](../3.2-execution-environments)
+[Previous Exercise](../3.1-execution-environments) - [Next Exercise](../3.3-gitops-automation)
 
-[Click here to return to the Ansible for Red Hat Enterprise Linux Workshop](../README.md#section-1---ansible-engine-exercises)
+[Click here to return to the Ansible for Red Hat Enterprise Linux Workshop](../README.md#section-1---ansible-engin
