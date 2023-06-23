@@ -12,6 +12,8 @@
     - [Step 1 - Use Automation Execution Environments](#step-1---use-automation-execution-environments)
       - [Inspect Automation Execution Environments](#inspect-automation-execution-environments)
       - [Using Automation Execution Environments](#using-automation-execution-environments)
+        - [Use case: Playbook with previous version of Ansible](#use-case-playbook-with-previous-version-of-ansible)
+        - [Use case: Playbook with collections not included on the Execution Environment](#use-case-playbook-with-collections-not-included-on-the-execution-environment)
     - [Step 2 - Build Automation Execution Environments](#step-2---build-automation-execution-environments)
       - [Deciding When to Create a Custom Automation Execution Environment](#deciding-when-to-create-a-custom-automation-execution-environment)
       - [Preparing for a New Automation Execution Environment](#preparing-for-a-new-automation-execution-environment)
@@ -23,11 +25,10 @@
 
 ## Objective
 
-This exercise will help users understand how to identify the Automation Execution
-Environments and select the correct one for your use case.
+This exercise will help users understand how to identify the Automation Execution Environments and select the correct one for your use case.
 
-An *automation execution environment* is a container image that includes Ansible Content Collections, their software dependencies, and a minimal Ansible engine that can run your playbooks.
-By using an automation execution environment, you can use the same consistent, portable environment to develop your Ansible Playbooks on one system and run them on another. This streamlines and simplifies the development process and helps to ensure predictable, reproducible results.
+An **Automation Execution Environment* is a container image that includes Ansible Content Collections, their software dependencies, and a minimal Ansible engine that can run your playbooks.
+By using an automation Execution Environment, you can use the same consistent, portable environment to develop your Ansible Playbooks on one system and run them on another. This streamlines and simplifies the development process and helps to ensure predictable, reproducible results.
 
 The automation execution environment is where your Ansible Playbook actually runs. You normally use a tool such as `ansible-navigator` to run a playbook, but the playbook runs inside the container rather than directly on your system.
 
@@ -44,7 +45,7 @@ An automation execution environment consists of the following:
 
 #### Inspect Automation Execution Environments
 
-Use the automation content navigator to list and inspect the automation execution environments available on the system. To do so, run the `ansible-navigator images` command:
+1. Use the automation content navigator to list and inspect the automation execution environments available on the system. To do so, run the `ansible-navigator images` command:
 
 ```bash
 [student@ansible-1 ~]$ ansible-navigator images
@@ -58,10 +59,9 @@ Use the automation content navigator to list and inspect the automation executio
 ```
 
 From here, we can inspect the execution environment.
-To select the existing Execution Environment, we need to press `**0** ee-supported-rhel8`, and then pressing `**0** Image information` will show the details of the execution environment.
+To select the existing Execution Environment, we need to press `**0**` to select the `ee-supported-rhel8`, and then pressing `**0**` again to select  `Image information`, that will show the details of the execution environment.
 
-If we need to check the collections or ansible information from the image, we can press `**2** Ansible version and collections`
-
+2. To check the collections or ansible information from the image, we should press `**ESC**` to return to the past screen and then press `**2**` to select `Ansible version and collections`
 
 ```bash
  0│---
@@ -104,10 +104,10 @@ If we need to check the collections or ansible information from the image, we ca
 
 > **NOTE**
 >
-> That the Execution Environment Image `ee-supported-rhel8` is providing us `ansible-core 2.14.1` and a minimal set of collections.
+> The Execution Environment `ee-supported-rhel8` is providing us `ansible-core 2.14.1` and a minimal set of collections to work with.
 >
 
-To configure the default Execution Environment Image you can edit the file `~/.ansible-navigator.yml` under the `execution-environment/image` section, for this specific environment looks like:
+To configure the default Execution Environment you can edit the file `~/.ansible-navigator.yml` for this specific environment looks like:
 
 ```yaml
 ---
@@ -128,12 +128,31 @@ ansible-navigator:
       dest: "/etc/ansible/"
 ```
 
+> **NOTE**
+>
+> For more details in how to configure `ansible-navigator` visit the following [link](https://ansible.readthedocs.io/projects/navigator/settings/#the-ansible-navigator-settings-file)
+>
+
 #### Using Automation Execution Environments
 
-The `ansible-navigator run` command runs your playbooks in an automation execution environment, the default one is the one defined on the file `~/.ansible-navigator.yml`, but you can select a different one by specifying the `--execution-environment-image` (or `--eei`) option. The q following example shows how to run a playbook using the compatibility automation execution environment:
+The `ansible-navigator run` command runs your playbooks in an automation Execution Environment, the default one is the one defined on the file `~/.ansible-navigator.yml`, but you can select a different one by specifying the `--execution-environment-image` (or `--eei`) option.
 
-```bash
-[student@ansible-1 ~]$ echo "---
+##### Use case: Playbook with previous version of Ansible
+
+The following example shows how to run a playbook using the **Compatibility Automation Execution Environment**.
+The **Compatibility Automation Execution Environment** contains `Ansible 2.9`, for compatibility with playbooks and content written for previous versions of Ansible Automation Platform.
+
+1. Create an exercise directory named `~/ansible-ee/old-playbook`
+
+```shell
+[student@ansible-1 ~]$ mkdir -p ~/ansible-ee/old-playbook
+[student@ansible-1 ~]$ cd ~/ansible-ee/old-playbook
+```
+
+1. Create a playbook named `old-playbook.yml`, that is using the old syntax.
+
+```shell
+[student@ansible-1 old-playbook]$ echo "---
 - name: Update web servers
   hosts: web
   become: true
@@ -147,18 +166,18 @@ The `ansible-navigator run` command runs your playbooks in an automation executi
     systemd:
       name: httpd
       state: started
-      enabled: true" old-playbook.yml
+      enabled: true" > old-playbook.yml
 ```
 
 > **NOTE**
 >
-> The tasks on the `old-playbook.yml` file are **NOT** using the FQCN (Full Qualify Collection Name) for the modules, that is the *old way* to write ansible playbooks, as the new method includes the FQCN for each module, for this example, the `yum` module should become `ansible.builtin.yum` and `systemd` becomes `ansible.builtin.systemd`
+> The tasks on the `old-playbook.yml` file are **NOT** using the FQCN (Full Qualify Collection Name) for the modules, that is the *old way* to write ansible playbooks, as the new method includes the FQCN for each module, for this example, the `yum` module should read `ansible.builtin.yum` and `systemd` becomes `ansible.builtin.systemd`
 >
 
-The next command is going to run the `old-playbook.yml` using an Execution Environment that uses an older version of ansible, in this case `Ansible 2.9`
+3. The next command is going to run the `old-playbook.yml` using an Execution Environment that uses an older version of ansible, in this case `Ansible 2.9`
 
-```bash
-[student@ansible-1 ~]$ ansible-navigator run oldplaybook.yml --eei registry.redhat.io/ansible-automation-platform-23/ee-29-rhel8:1.0
+```shell
+[student@ansible-1 old-playbook]$ ansible-navigator run old-playbook.yml --eei registry.redhat.io/ansible-automation-platform-23/ee-29-rhel8:1.0 -m stdout
 ----------------------------------------------------------------------------------------------------
 Execution environment image and pull policy overview
 ----------------------------------------------------------------------------------------------------
@@ -208,29 +227,32 @@ node3                      : ok=3    changed=2    unreachable=0    failed=0    s
 
 > **NOTE**
 >
-> As we don't have the Execution Environment Image `registry.redhat.io/ansible-automation-platform-23/ee-29-rhel8:1.0` in our system, the previous command downloaded it from the Registry `registry.redhat.io` and now we can refer to that Execution Environment Images as `ansible-automation-platform-23/ee-29-rhel8:1.0` or `ee-29-rhel8`
+> As we don't have the Execution Environment `registry.redhat.io/ansible-automation-platform-23/ee-29-rhel8:1.0` in our system, the previous command downloaded it from the registry `registry.redhat.io` and now we can refer to that Execution Environment as `ansible-automation-platform-23/ee-29-rhel8:1.0` or `ee-29-rhel8`
 > Example:
-> ```bash
->[student@ansible-1 ~]$ ansible-navigator run oldplaybook.yml --eei ee29-rhel8
+> ```shell
+> [student@ansible-1 old-playbook]$ ansible-navigator run old-playbook.yml --eei ee29-rhel8 -m stdout
 >```
 
 > **NOTE**
 >
-> If the Execution Environment Image is not already available on your system, `ansible-navigator` tries to pull it from the container registry. You need to make sure that you are authenticated to that registry with the `podman login` command first. In the preceding example, at the beginning of your session, run the `podman login registry.redhat.io` command and provide your Customer Portal credentials to authenticate to the registry.
+> If the Execution Environment is not already available on your system, `ansible-navigator` tries to pull it from the container registry. You need to make sure that you are authenticated to that registry with the `podman login` command first. In the preceding example, at the beginning of your session, run the `podman login registry.redhat.io` command and provide your Customer Portal credentials to authenticate to the registry.
 >
 
-To confirm that indeed we are using `ansible 2.9.27` we can run:
+4. To confirm that indeed we are using `ansible 2.9.27` we can run:
 
-```bash
-[student@ansible-1 ~]$ ansible-navigator images
+```shell
+[student@ansible-1 old-playbook]$ ansible-navigator images
 Image                                                                           Tag                                       Execution environment                                                                        Created                                               Size
 0│ee-29-rhel8                                                                     1.0                                       True                                                                                         12 days ago                                           888 MB
 1│ee-supported-rhel8                                                              1.0.0-208                                 True                                                                                         6 months ago                                          1.66 GB
+
+
+^b/PgUp page up                                 ^f/PgDn page down                                 ↑↓ scroll                                 esc back                                 [0-9] goto                                 :help help
 ```
 
-Then press `**0** ee-29-rhel8` and then `**2** Ansible version and collections`
+Then press `**0**1` to select the Execution Environment `ee-29-rhel8` and then `**2**` to select `Ansible version and collections`
 
-```
+```shell
  0│---
  1│ansible:
  2│  collections:
@@ -246,17 +268,30 @@ Then press `**0** ee-29-rhel8` and then `**2** Ansible version and collections`
 > **NOTE**
 >
 > That the Execution Environment Image `ee-29-rhel8` is providing us `ansible 2.9.27` and **NO** collections at all.
->
 
 > **NOTE**
 >
 > Instead of using the `--eei` option, you can create an `ansible-navigator.yml` configuration file to define the automation execution environment to use by default.
 
+> **WARNING**
+>
+> For this example, the default Execution Environment can also run the deprecated playbook, however, eventually that option wouldn't be there
 
-With the previous steps in mind, lets review the following playbook
+##### Use case: Playbook with collections not included on the Execution Environment
 
-```yaml
----
+The following example shows how to find a Execution Environment that includes the Ansible Content Collections that we need for our projects
+
+1. Create an exercise directory named `~/ansible-ee/acl-playbook`
+
+```shell
+[student@ansible-1 ~]$ mkdir -p ~/ansible-ee/acl-playbook
+[student@ansible-1 ~]$ cd ~/ansible-ee/acl-playbook
+```
+
+2. Create a playbook named `acl-playbook.yml`
+
+```shell
+[student@ansible-1 acl-playbook]$ echo "---
 - name: Retrieving ACLs using the ansible.posix collection
   hosts: web
   gather_facts: false
@@ -264,20 +299,18 @@ With the previous steps in mind, lets review the following playbook
     - name: Obtain the ACLs for /var/www/html directory
       ansible.posix.acl:
         path: /var/www/html
-        register: acl_info
+      register: acl_info
     - name: Print the ACLs obtained for /var/www/html directory
       ansible.builtin.debug:
-        var: acl_info.acl
+        var: acl_info.acl" > acl-playbook.yml
 ```
 
-1. Identify the modules that the playbook uses.
+3. Identify the modules that the playbook uses.
 
 - ansible.posix.acl
 - ansible.builtin.debug
 
-To successfully run the prebuilt playbook, you need the `ansible.posix.acl` module, which is part of the `ansible.posix` Ansible Content Collection in the Execution Environment Image.
-
-2. Find the automation execution environment that already includes the `ansible.posix` Ansible Content Collection.
+To successfully run the playbook, you need the `ansible.posix.acl` module, which is part of the `ansible.posix` Ansible Content Collection in the Execution Environment.
 
 > **NOTE**
 >
@@ -285,10 +318,10 @@ To successfully run the prebuilt playbook, you need the `ansible.posix.acl` modu
 >
 > `podman login registry.redhat.io`
 
-3. Use the `ansible-navigator images` command to pull the minimal automation execution environment and analyze it.
+4. Use the `ansible-navigator images` command to pull the **Minimal Execution Environment** and analyze it.
 
 ```shell
-[student@ansible-1 ~]$ ansible-navigator images --eei ansible-automation-platform/ee-minimal-rhel8:2.14
+[student@ansible-1 acl-playbook]$ ansible-navigator images --eei ansible-automation-platform/ee-minimal-rhel8:2.14
 ------------------------------------------------------------------------------------
 Execution environment image and pull policy overview
 ------------------------------------------------------------------------------------
@@ -324,7 +357,7 @@ ab66adc818632fb4046f579ba8c65a0a186b51be88e5335dea1ae7a8aa11d797
 ^b/PgUp page up                                       ^f/PgDn page down                                       ↑↓ scroll                                       esc back                                       [0-9] goto                                       :help help
 ```
 
-4. Press `**1**` to inspect this automation Execution Environment Image. Then, press `**2**` to select the **Ansible version and collections** option.
+5. Press `**1**` to inspect this Execution Environment(ee-minimal-rhel8). Then, press `**2**` to select the **Ansible version and collections** option.
 
 ```
 0│---
@@ -338,14 +371,16 @@ ab66adc818632fb4046f579ba8c65a0a186b51be88e5335dea1ae7a8aa11d797
 8│    details: ansible [core 2.14.6]
 ```
 
-5. The resulting screen indicates that the minimal automation execution environment **does not** contain any additional Ansible Content Collections.
+6. The resulting screen indicates that the Minimal Execution Environment **does not** contain any additional Ansible Content Collections.
 
-6. Type `:q` and press `Enter` to exit the `ansible-navigator` command. The `ee-minimal-rhel8` automation execution environment **is not useful for running the prebuilt playbook**.
+7. Type `:q` and press `Enter` to exit the `ansible-navigator` command.
 
-7. Use the `ansible-navigator` command to pull down and inspect the supported automation execution environment.
+The `ee-minimal-rhel8` Execution Environment **is not useful for run the playbook**.
+
+8. Use the `ansible-navigator` command to pull down and inspect the supported automation execution environment.
 
 ```shell
-[student@ansible-1 ~]$ ansible-navigator images --eei registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8:1.0
+[student@ansible-1 acl-playbook]$ ansible-navigator images --eei registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8:1.0
 -----------------------------------------------------------------------------------------------------------
 Execution environment image and pull policy overview
 -----------------------------------------------------------------------------------------------------------
@@ -381,7 +416,7 @@ Storing signatures
 ^b/PgUp page up                                       ^f/PgDn page down                                       ↑↓ scroll                                       esc back                                       [0-9] goto                                       :help help
 ```
 
-8. Press `**2**` to inspect this automation Execution Environment Image. Then, press `**2**` to select the **Ansible version and collections** option.
+8. Press `**2**` to inspect the `ee-supported-rhel8:1.0` Execution Environment. Then, press `**2**` to select the **Ansible version and collections** option.
 
 ```
  0│---
@@ -422,14 +457,18 @@ Storing signatures
 35│    details: ansible [core 2.14.6]
 ```
 
-9.  The resulting screen indicates that the supported automation execution environment contains the `ansible.posix` Ansible Content Collection.
+9.  The resulting screen indicates that the Supported Execution Environment contains the `ansible.posix` Ansible Content Collection.
 
-10. Type `:q` and press `Enter` to exit the `ansible-navigator` command. The `ee-supported-rhel8` automation execution environment contains the `ansible.posix` Ansible Content Collection that you need. **You can run the prebuilt playbook using this automation execution environment.**
+10. Type `:q` and press `Enter` to exit the `ansible-navigator` command.
 
-11. As a demonstration that the *minimal* automation execution environment does not work with the `acl_info.yml` playbook because it does not include the `ansible.posix` collection. Use the `ansible-navigator` command to run the `acl_info.yml` playbook using the minimal automation execution environment.
+The `ee-supported-rhel8` Execution Environment contains the `ansible.posix` Ansible Content Collection that you need. **You can run the prebuilt playbook using this Execution Environment.**
+
+11. With what we have observed thus far, our hypothesis is that the **Minimal Execution Environment** won't work with the `acl-playbook.yml` because it does not include the `ansible.posix` Ansible Content Collection, or any other Ansible Content Collection. And the **Supported Execution Environment** includes the necessary `ansible.posix`  Ansible Content Collection to run successfully the `acl-playbook.yml` playbook.
+
+12. Let's confirm our hypothesis. Use the `ansible-navigator` command to run the `acl-playbook.yml` playbook using the Minimal Execution Environment.
 
 ```shell
-ansible-navigator run acl_info.yml -m stdout --eei ee-minimal-rhel8:2.14
+[student@ansible-1 acl-playbook]$ ansible-navigator run acl-playbook.yml -m stdout --eei ee-minimal-rhel8:2.14
 ERROR! couldn't resolve module/action 'ansible.posix.acl'. This often indicates a misspelling, missing collection, or incorrect module path.
 
 The error appears to be in '/home/student/acl_info.yml': line 6, column 7, but may
@@ -443,12 +482,12 @@ The offending line appears to be:
 Please review the log for errors.
 ```
 
-As expected, the playbook cannot resolve the ansible.posix.acl module, causing it to fail.
+As expected, the playbook cannot resolve the `ansible.posix.acl` module, causing it to fail.
 
-12. Use the `ansible-navigator` command to run the `acl_info.yml` playbook using the `ee-supported-rhel8:1.0` automation execution environment.
+13. Use the `ansible-navigator` command to run the `acl-playbook.yml` playbook using the `ee-supported-rhel8:1.0` Execution Environment.
 
 ```shell
-[student@ansible-1 ~]$ ansible-navigator run acl_info.yml -m stdout --eei ee-supported-rhel8:1.0
+[student@ansible-1 minimal-playbook]$ ansible-navigator run acl-playbook.yml -m stdout --eei ee-supported-rhel8:1.0
 
 PLAY [Retrieving ACLs using the ansible.posix collection] **********************
 
