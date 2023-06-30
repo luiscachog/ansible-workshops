@@ -21,6 +21,7 @@
         - [Python Packages to Install with `requirements.txt`](#python-packages-to-install-with-requirementstxt)
         - [RPM Packages to Install with `bindep.txt`](#rpm-packages-to-install-with-bindeptxt)
       - [Building a New Automation Execution Environment](#building-a-new-automation-execution-environment)
+      - [Building a Automation Execution Environment with custom Ansible Content Collections](#building-a-automation-execution-environment-with-custom-ansible-content-collections)
     - [Takeaways](#takeaways)
 
 ## Objective
@@ -60,6 +61,10 @@ An automation execution environment consists of the following:
 
 From here, we can inspect the execution environment.
 To select the existing Execution Environment, we need to press `**0**` to select the `ee-supported-rhel8`, and then pressing `**0**` again to select  `Image information`, that will show the details of the execution environment.
+
+> **INFO**
+>
+> To exit from that menu, we can press `**ESC**` to return to the previous menu. Type `**:q**` and press `**Enter**` to exit the `ansible-navigator` command.
 
 2. To check the collections or ansible information from the image, we should press `**ESC**` to return to the past screen and then press `**2**` to select `Ansible version and collections`
 
@@ -104,7 +109,7 @@ To select the existing Execution Environment, we need to press `**0**` to select
 
 > **NOTE**
 >
-> The Execution Environment `ee-supported-rhel8` is providing us `ansible-core 2.14.1` and a minimal set of collections to work with.
+> The Execution Environment `ee-supported-rhel8` is providing us `ansible-core 2.14.1` and a set of Ansible Content Collections to work with, this image provides around 30 Ansible Content Collections.
 >
 
 To configure the default Execution Environment you can edit the file `~/.ansible-navigator.yml` for this specific environment looks like:
@@ -130,7 +135,7 @@ ansible-navigator:
 
 > **NOTE**
 >
-> For more details in how to configure `ansible-navigator` visit the following [link](https://ansible.readthedocs.io/projects/navigator/settings/#the-ansible-navigator-settings-file)
+> For more details in how to configure `ansible-navigator` visit the [link](https://ansible.readthedocs.io/projects/navigator/settings/#the-ansible-navigator-settings-file)
 >
 
 #### Using Automation Execution Environments
@@ -149,7 +154,7 @@ The **Compatibility Automation Execution Environment** contains `Ansible 2.9`, f
 [student@ansible-1 ~]$ cd ~/ansible-ee/old-playbook
 ```
 
-1. Create a playbook named `old-playbook.yml`, that is using the old syntax.
+1. Create a playbook named `old-playbook.yml`, that is using the old Ansible syntax.
 
 ```shell
 [student@ansible-1 old-playbook]$ echo "---
@@ -166,15 +171,26 @@ The **Compatibility Automation Execution Environment** contains `Ansible 2.9`, f
     systemd:
       name: httpd
       state: started
-      enabled: true" > old-playbook.yml
+      enabled: true
+  - name: Create a basic index.html
+    copy:
+      content: 'This is web node name: {{ inventory_hostname }} and IP Address: {{ ansible_host }}'
+      dest: /var/www/html/index.html" > old-playbook.yml
 ```
 
 > **NOTE**
 >
-> The tasks on the `old-playbook.yml` file are **NOT** using the FQCN (Full Qualify Collection Name) for the modules, that is the *old way* to write ansible playbooks, as the new method includes the FQCN for each module, for this example, the `yum` module should read `ansible.builtin.yum` and `systemd` becomes `ansible.builtin.systemd`
+> The tasks on the `old-playbook.yml` file are **NOT** using the FQCN (Full Qualify Collection Name) for the modules, that is the *old way* to write ansible playbooks, as the new method includes the FQCN for each module, for this example, to update the playbook the `yum` module should reads `ansible.builtin.yum` and `systemd` becomes `ansible.builtin.systemd`
 >
 
-3. The next command is going to run the `old-playbook.yml` using an Execution Environment that uses an older version of ansible, in this case `Ansible 2.9`
+3. The **Compatibility Automation Execution Environment** for this example is available in this [link](https://catalog.redhat.com/software/containers/ansible-automation-platform/ee-29-rhel8/6331f4f5c8ae8d70b75bfe28) for your review
+
+![Compatibility Automation Execution Environment - Overview](images/compatibility-automation-execution-environment-01.png "Compatibility Automation Execution Environment - Overview")
+
+![Compatibility Automation Execution Environment - Get this Image](images/compatibility-automation-execution-environment-02.png "Compatibility Automation Execution Environment - Get this Image")
+
+
+4. The next command is going to download the Execution Environment image and then run the `old-playbook.yml` using the downloaded Execution Environment that uses an older version of ansible, in this case `Ansible 2.9`
 
 ```shell
 [student@ansible-1 old-playbook]$ ansible-navigator run old-playbook.yml --eei registry.redhat.io/ansible-automation-platform-23/ee-29-rhel8:1.0 -m stdout
@@ -238,7 +254,16 @@ node3                      : ok=3    changed=2    unreachable=0    failed=0    s
 > If the Execution Environment is not already available on your system, `ansible-navigator` tries to pull it from the container registry. You need to make sure that you are authenticated to that registry with the `podman login` command first. In the preceding example, at the beginning of your session, run the `podman login registry.redhat.io` command and provide your Customer Portal credentials to authenticate to the registry.
 >
 
-4. To confirm that indeed we are using `ansible 2.9.27` we can run:
+5. We can confirm that the playbook run successfully running the command:
+
+```shell
+for i in {1..3}; do curl node$i -w "\n"; done
+This is web node name: node1 and IP Address: 18.191.157.126
+This is web node name: node2 and IP Address: 3.141.45.107
+This is web node name: node3 and IP Address: 52.15.98.115
+```
+
+6. Back to the Execution Environment, lets confirm that indeed we used `ansible 2.9.27` to run the previous command, for that we can run:
 
 ```shell
 [student@ansible-1 old-playbook]$ ansible-navigator images
@@ -250,7 +275,7 @@ Image                                                                           
 ^b/PgUp page up                                 ^f/PgDn page down                                 ↑↓ scroll                                 esc back                                 [0-9] goto                                 :help help
 ```
 
-Then press `**0**1` to select the Execution Environment `ee-29-rhel8` and then `**2**` to select `Ansible version and collections`
+Then press `**0**` to select the Execution Environment `ee-29-rhel8` and then `**2**` to select `Ansible version and collections`
 
 ```shell
  0│---
@@ -279,7 +304,7 @@ Then press `**0**1` to select the Execution Environment `ee-29-rhel8` and then `
 
 ##### Use case: Playbook with collections not included on the Execution Environment
 
-The following example shows how to find a Execution Environment that includes the Ansible Content Collections that we need for our projects
+The following example shows how to find a Execution Environment that includes the required Ansible Content Collections that we need for our projects
 
 1. Create an exercise directory named `~/ansible-ee/acl-playbook`
 
@@ -317,6 +342,13 @@ To successfully run the playbook, you need the `ansible.posix.acl` module, which
 > Use the `podman login` command to log in to the private automation hub at `registry.redhat.io` if you haven't done yet.
 >
 > `podman login registry.redhat.io`
+
+3. The **Minimal Automation Execution Environment** for this step is available in this [link](https://catalog.redhat.com/software/containers/ansible-automation-platform/ee-minimal-rhel8/62bd87442c0945582b2b4b37) for your review
+
+![Minimal Automation Execution Environment - Overview](images/minimal-automation-execution-environment-01.png "Minimal Automation Execution Environment - Overview")
+
+![Minimal Automation Execution Environment - Get this Image](images/minimal-automation-execution-environment-02.png "Minimal Automation Execution Environment - Get this Image")
+
 
 4. Use the `ansible-navigator images` command to pull the **Minimal Execution Environment** and analyze it.
 
@@ -357,7 +389,7 @@ ab66adc818632fb4046f579ba8c65a0a186b51be88e5335dea1ae7a8aa11d797
 ^b/PgUp page up                                       ^f/PgDn page down                                       ↑↓ scroll                                       esc back                                       [0-9] goto                                       :help help
 ```
 
-5. Press `**1**` to inspect this Execution Environment(ee-minimal-rhel8). Then, press `**2**` to select the **Ansible version and collections** option.
+5. Press `**1**` to inspect this Execution Environment(`ee-minimal-rhel8`). Then, press `**2**` to select the **Ansible version and collections** option.
 
 ```
 0│---
@@ -371,13 +403,19 @@ ab66adc818632fb4046f579ba8c65a0a186b51be88e5335dea1ae7a8aa11d797
 8│    details: ansible [core 2.14.6]
 ```
 
-6. The resulting screen indicates that the Minimal Execution Environment **does not** contain any additional Ansible Content Collections.
+6. The resulting screen indicates that the Minimal Execution Environment **does not** contain any additional Ansible Content Collections and it is providing `Ansible Core 2.14.6`.
 
 7. Type `:q` and press `Enter` to exit the `ansible-navigator` command.
 
-The `ee-minimal-rhel8` Execution Environment **is not useful for run the playbook**.
+The `ee-minimal-rhel8` Execution Environment **is not useful for run the `acl-playbook.yaml` playbook**.
 
-8. Use the `ansible-navigator` command to pull down and inspect the supported automation execution environment.
+8. The **Supported Automation Execution Environment** for this step is available in this [link](https://catalog.redhat.com/software/containers/ansible-automation-platform-23/ee-supported-rhel8/62c7060bc1d77e67d5893a78) for your review
+
+![Supported Automation Execution Environment - Overview](images/supported-automation-execution-environment-01.png "Supported Automation Execution Environment - Overview")
+
+![Supported Automation Execution Environment - Get this Image](images/supported-automation-execution-environment-02.png "Supported Automation Execution Environment - Get this Image")
+
+8. Use the `ansible-navigator` command to pull down and inspect the **Supported Automation Execution Environment**.
 
 ```shell
 [student@ansible-1 acl-playbook]$ ansible-navigator images --eei registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8:1.0
@@ -418,7 +456,7 @@ Storing signatures
 
 8. Press `**2**` to inspect the `ee-supported-rhel8:1.0` Execution Environment. Then, press `**2**` to select the **Ansible version and collections** option.
 
-```
+```shell
  0│---
  1│ansible:
  2│  collections:
@@ -457,7 +495,7 @@ Storing signatures
 35│    details: ansible [core 2.14.6]
 ```
 
-9.  The resulting screen indicates that the Supported Execution Environment contains the `ansible.posix` Ansible Content Collection.
+9.  The resulting screen indicates that the **Supported Execution Environment** contains the `ansible.posix` Ansible Content Collection.
 
 10. Type `:q` and press `Enter` to exit the `ansible-navigator` command.
 
@@ -465,7 +503,7 @@ The `ee-supported-rhel8` Execution Environment contains the `ansible.posix` Ansi
 
 11. With what we have observed thus far, our hypothesis is that the **Minimal Execution Environment** won't work with the `acl-playbook.yml` because it does not include the `ansible.posix` Ansible Content Collection, or any other Ansible Content Collection. And the **Supported Execution Environment** includes the necessary `ansible.posix`  Ansible Content Collection to run successfully the `acl-playbook.yml` playbook.
 
-12. Let's confirm our hypothesis. Use the `ansible-navigator` command to run the `acl-playbook.yml` playbook using the Minimal Execution Environment.
+12. Let's confirm our hypothesis. Use the `ansible-navigator` command to run the `acl-playbook.yml` playbook using the **Minimal Execution Environment**.
 
 ```shell
 [student@ansible-1 acl-playbook]$ ansible-navigator run acl-playbook.yml -m stdout --eei ee-minimal-rhel8:2.14
@@ -516,7 +554,7 @@ ok: [node3] => {
         "user::rwx",
         "group::r-x",
         "other::r-x"
-    ]
+    ]****
 }
 
 PLAY RECAP *********************************************************************
@@ -525,19 +563,15 @@ node2                      : ok=2    changed=0    unreachable=0    failed=0    s
 node3                      : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ```
 
-This automation execution environment contains the `ansible.posix` collection and the command succeeds.
+The **Supported Execution Environment** contains the `ansible.posix` Ansible Content Collection and the command succeeds.
 
 ### Step 2 - Build Automation Execution Environments
 
 #### Deciding When to Create a Custom Automation Execution Environment
 
-Red Hat provides several Ansible automation execution environments that suit the needs of many users. These automation execution environments include the most common Ansible Content Collections.
+As we can see on the previous exercise, Red Hat provides several Ansible Execution Environments that suit the needs of many users. These Execution Environments include the most common Ansible Content Collections. The Execution Environments that Red Hat provides might be sufficient for your playbooks. In that case, you do not need to create new Execution Environments.
 
-You can use the `ansible-navigator images` command to inspect a container image and view the collections, Python packages, and operating system packages it includes.
-
-The automation execution environments that Red Hat provides might be sufficient for your playbooks. In that case, you do not need to create new automation execution environments.
-
-Sometimes, you might need an Ansible Content Collection that is not included in one of the existing automation execution environments. Often, you can install these extra collections in your Ansible project and then use an existing automation execution environment without having to build a new one.
+Sometimes, you might need an Ansible Content Collection that is not included in one of the existing Execution Environments. Often, you can install these extra collections in your Ansible project and then use an existing automation execution environment without having to build a new one.
 
 On the other hand, you should consider creating a custom automation execution environment in the following situations:
 
@@ -545,24 +579,78 @@ On the other hand, you should consider creating a custom automation execution en
 - The collection you want to use requires Python packages or software that are not included in an existing automation execution environment.
 - You need to use a collection that conflicts with another collection in your existing automation execution environments.
 
+You can use the `ansible-navigator images` command to inspect a container image and view the **collections**, **Python packages**, and **operating system packages** it includes every Execution Environment.
+
 #### Preparing for a New Automation Execution Environment
 
-You use the `ansible-builder` command to create the container images used for automation execution environments.
-The ansible-builder RPM package provides that command.
+You use the `ansible-builder` command to create the container images used for automation Execution Environments.
+The **ansible-builder RPM package** provides that command.
+
+1. Let's install the `ansible-builder` RPM package
 
 ```shell
 [student@ansible-1 ~]$ sudo yum install ansible-builder
+Updating Subscription Management repositories.
+Last metadata expiration check: 2:14:57 ago on Fri 7 Apr 2023 12:49:39 PM UTC.
+Dependencies resolved.
+================================================================================================================================================================================================================================================================================================
+ Package                                                                            Architecture                                                 Version                                                              Repository                                                           Size
+================================================================================================================================================================================================================================================================================================
+Installing:
+ ansible-builder                                                                    noarch                                                       1.2.0-1.el8ap                                                        aap_installer                                                        51 k
+Installing dependencies:
+ python39-bindep                                                                    noarch                                                       2.10.2-3.el8ap                                                       aap_installer                                                        58 k
+ python39-distro                                                                    noarch                                                       1.6.0-3.el8pc                                                        aap_installer                                                        34 k
+ python39-parsley                                                                   noarch                                                       1.3-2.el8pc                                                          aap_installer                                                       176 k
+ python39-pbr                                                                       noarch                                                       5.8.1-2.el8ap                                                        aap_installer                                                       148 k
+ python39-requirements-parser                                                       noarch                                                       0.2.0-4.el8ap                                                        aap_installer                                                        20 k
+
+Transaction Summary
+================================================================================================================================================================================================================================================================================================
+Install  6 Packages
+
+Total size: 488 k
+Installed size: 2.0 M
+Is this ok [y/N]: y
+Downloading Packages:
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                                                                                                                                                                                                                                        1/1
+  Installing       : python39-requirements-parser-0.2.0-4.el8ap.noarch                                                                                                                                                                                                                      1/6
+  Installing       : python39-pbr-5.8.1-2.el8ap.noarch                                                                                                                                                                                                                                      2/6
+  Installing       : python39-parsley-1.3-2.el8pc.noarch                                                                                                                                                                                                                                    3/6
+  Installing       : python39-distro-1.6.0-3.el8pc.noarch                                                                                                                                                                                                                                   4/6
+  Installing       : python39-bindep-2.10.2-3.el8ap.noarch                                                                                                                                                                                                                                  5/6
+  Installing       : ansible-builder-1.2.0-1.el8ap.noarch                                                                                                                                                                                                                                   6/6
+  Running scriptlet: ansible-builder-1.2.0-1.el8ap.noarch                                                                                                                                                                                                                                   6/6
+  Verifying        : ansible-builder-1.2.0-1.el8ap.noarch                                                                                                                                                                                                                                   1/6
+  Verifying        : python39-bindep-2.10.2-3.el8ap.noarch                                                                                                                                                                                                                                  2/6
+  Verifying        : python39-distro-1.6.0-3.el8pc.noarch                                                                                                                                                                                                                                   3/6
+  Verifying        : python39-parsley-1.3-2.el8pc.noarch                                                                                                                                                                                                                                    4/6
+  Verifying        : python39-pbr-5.8.1-2.el8ap.noarch                                                                                                                                                                                                                                      5/6
+  Verifying        : python39-requirements-parser-0.2.0-4.el8ap.noarch                                                                                                                                                                                                                      6/6
+Installed products updated.
+
+Installed:
+  ansible-builder-1.2.0-1.el8ap.noarch          python39-bindep-2.10.2-3.el8ap.noarch          python39-distro-1.6.0-3.el8pc.noarch          python39-parsley-1.3-2.el8pc.noarch          python39-pbr-5.8.1-2.el8ap.noarch          python39-requirements-parser-0.2.0-4.el8ap.noarch
+
+Complete!
 ```
 
-Create a working directory to prepare the files that you need to build the automation execution environment container image. The `ansible-builder` command searches this working directory for its `execution-environment.yml` configuration file, which it uses to determine how to build the container image.
+2. Create a working directory to prepare the files that you need to build the automation execution environment container image.
 
 ```shell
-mkdir ~/execution-environment
-cd execution-environment
+[student@ansible-1 ~]$ mkdir -p ~/ansible-ee/execution-environment
+[student@ansible-1 ~]$ cd ~/ansible-ee/execution-environment
 ```
 
-```shell
-[student@ansible-1 ~]$ echo "---
+3. The `ansible-builder` command searches this working directory for its `execution-environment.yml` configuration file, which it uses to determine how to build the container image.
+
+```yaml
+---
 version: 1
 build_arg_defaults:
   EE_BASE_IMAGE: registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:2.14
@@ -571,7 +659,7 @@ ansible_config: ansible.cfg
 dependencies:
   galaxy: requirements.yml
   python: requirements.txt
-  system: bindep.txt " > execution-environment.yml
+  system: bindep.txt
 ```
 
 - The **EE_BASE_IMAGE** parameter specifies the automation execution environment container image to use as the starting point.
@@ -634,41 +722,49 @@ If you use images from a container registry that requires authentication, then y
 >
 > `podman login registry.redhat.io`
 
-After you have prepared your configuration files and authenticated to the container registry, run the `ansible-builder build` command to create your automation execution environment container image.
-Use the `--tag` (or `-t`) option to provide a name for the container image. For example, use the `--tag demo:v1.0` option to name the container **demo** and give it the *v1.0* tag.
+1. Let's prepare the `execution-environment.yml`, `requirements.yml`, `requirements.txt` and `bindep.txt` files:
+
+```shell
+[student@ansible-1 ]$ cd ~/ansible-ee/execution-environment
+[student@ansible-1 execution-environment]$ echo "---
+version: 1
+build_arg_defaults:
+  EE_BASE_IMAGE: registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:2.14
+  EE_BUILDER_IMAGE: registry.redhat.io/ansible-automation-platform/ansible-builder-rhel8:1.2
+dependencies:
+  galaxy: requirements.yml
+  python: requirements.txt
+  system: bindep.txt " > execution-environment.yml
+
+[student@ansible-1 execution-environment]$ echo "---
+collections:
+  - community.aws
+  - community.general" > requirements.yml
+
+[student@ansible-1 execution-environment]$ echo "sh==1.13.1
+jsonschema>=3.2.0,<4.0.1
+textfsm
+ttp
+xmltodict
+dnspython" > requirements.txt
+
+[student@ansible-1 execution-environment]$ echo "
+rsync [platform:rpm]
+curl [platform:rpm] " > bindep.txt
+```
+
+2. After you have prepared your configuration files and authenticated to the container registry, run the `ansible-builder build` command to create your automation Execution Environment container image.
+Use the `--tag` (or `-t`) option to provide a name for the container image. For example, use the `--tag demo-ee:v1.0` option to name the container **demo-ee** and give it the *v1.0* tag.
 A successful build creates a new container image.
 
 ```shell
-cd execution-environment
-cat execution-environment.yml
-cat requirements.yml
-cat requirements.txt
-cat bindep.txt
-[student@ansible-1 ~]$ ansible-builder build --tag my-ee-demo:v1.0
+[student@ansible-1 execution-environment]$ ansible-builder build --tag demo-ee:v1.0
+Running command:
+  podman build -f context/Containerfile -t demo-ee:v1.0 context
+Complete! The build context can be found at: /home/student/ansible-ee/execution-environment/context
 ```
 
-Use the podman images command to display local container images and discover your new created image.
-
-```shell
-[student@ansible-1 ~]$ podman images
-REPOSITORY                                                            TAG         IMAGE ID      CREATED             SIZE
-localhost/my-ee-demo                                                  v1.0        5a63e5230497  28 seconds ago      452 MB
-<none>                                                                <none>      d9d839ff7a32  About a minute ago  485 MB
-<none>                                                                <none>      59cd06e0aa9f  2 minutes ago       339 MB
-<none>                                                                <none>      cdf36a0f164b  20 hours ago        253 MB
-<none>                                                                <none>      439c692fca7b  20 hours ago        339 MB
-<none>                                                                <none>      433c8492ade2  20 hours ago        253 MB
-<none>                                                                <none>      af80478bb0db  20 hours ago        339 MB
-<none>                                                                <none>      79575353b239  20 hours ago        253 MB
-<none>                                                                <none>      75ac926d2a3a  20 hours ago        339 MB
-registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8  1.0         36a5c93b87dd  13 days ago         1.68 GB
-registry.redhat.io/ansible-automation-platform-23/ee-29-rhel8         1.0         58c796a146e3  13 days ago         888 MB
-registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8       2.14        ab66adc81863  3 weeks ago         306 MB
-registry.redhat.io/ansible-automation-platform/ansible-builder-rhel8  1.2         fa3b605f379b  6 weeks ago         220 MB
-registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8  1.0.0-208   a36109621782  6 months ago        1.66 GB
-```
-
-Also, we can verify it with the `ansible-navigator images` command:
+3. Use the `ansible-navigator images` to display local container images and discover your new created image.
 
 ```shell
 [student@ansible-1 ~]$ ansible-navigator images
@@ -678,161 +774,116 @@ Also, we can verify it with the `ansible-navigator images` command:
 2│ee-minimal-rhel8                                                            2.14                               True                                                                        3 weeks ago                                     306 MB
 3│ee-supported-rhel8                                                          1.0                                True                                                                        13 days ago                                     1.68 GB
 4│ee-supported-rhel8                                                          1.0.0-208                          True                                                                        6 months ago                                    1.66 GB
-5│my-ee-demo                                                                  v1.0                               True                                                                        2 minutes ago                                   452 MB
+5│demo-ee                                                                     v1.0                               True                                                                        2 minutes ago                                   498 MB
 
 
 ^b/PgUp page up                                ^f/PgDn page down                                ↑↓ scroll                                esc back                                [0-9] goto                                :help help
 ```
 
-Let's build an Execution Environment Image for the next section, where we will want to use some custom collections
+Also, we can verify it with the `podman images` command:
 
-Let's start
+```shell
+[student@ansible-1 execution-environment]$ podman images
+REPOSITORY                                                            TAG         IMAGE ID      CREATED        SIZE
+localhost/demo-ee                                                     v1.0        d9e549389e04  2 minutes ago  498 MB
+<none>                                                                <none>      00661cdcae42  4 minutes ago  505 MB
+<none>                                                                <none>      36f00346add2  5 minutes ago  339 MB
+registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8       2.14        ab66adc81863  5 weeks ago    306 MB
+registry.redhat.io/ansible-automation-platform/ansible-builder-rhel8  1.2         c3964c78111b  5 weeks ago    311 MB
+registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8  1.0.0-208   a36109621782  6 months ago   1.66 GB
+```
+
+#### Building a Automation Execution Environment with custom Ansible Content Collections
+
+Let's build an Execution Environment that we are going to use on the `3.2-collections` section, where we will want to use some custom collections
 
 1. Create a new directory named `ee-collections`
 
 ```shell
-[student@ansible-1 ~]$ mkdir ~/ee-collections
-[student@ansible-1 ~]$ cd ee-collections
-[student@ansible-1 ee-collections]$
+[student@ansible-1 ~]$ mkdir -p ~/ansible-ee/custom-collections
+[student@ansible-1 ~]$ cd ~/ansible-ee/custom-collections
 ```
 
 2. Create the files:
    1. `execution-environment.yml`
-   2. `ansible.cfg`
-   3. `requirements.yml`
-   4. `requirements.txt`
-   5. `bindep.txt`
+   2. `requirements.yml`
+   3. `requirements.txt`
+   4. `bindep.txt`
 
 ```shell
-[student@ansible-1 ee-collections]$ echo "---
+[student@ansible-1 custom-collections]$ echo "---
 version: 1
 build_arg_defaults:
   EE_BASE_IMAGE: registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:2.14
   EE_BUILDER_IMAGE: registry.redhat.io/ansible-automation-platform/ansible-builder-rhel8:1.2
-ansible_config: ansible.cfg
 dependencies:
   galaxy: requirements.yml
   python: requirements.txt
   system: bindep.txt " > execution-environment.yml
-```
 
-```shell
-[student@ansible-1 ee-collections]$ echo "
-[defaults]
-stdout_callback = yaml
-connection = smart
-timeout = 60
-deprecation_warnings = False
-action_warnings = False
-system_warnings = False
-devel_warning = False
-host_key_checking = False
-collections_on_ansible_version_mismatch = ignore
-retry_files_enabled = False
-interpreter_python = auto_silent
-[persistent_connection]
-connect_timeout = 200
-command_timeout = 200
-" > ansible.cfg
-```
-
-```shell
-[student@ansible-1 ee-collections]$ echo "---
+[student@ansible-1 custom-collections]$ echo "---
 collections:
   - newswangerd.collection_demo
   - community.crypto
   - ansible.netcommon
   - ansible.posix
 " > requirements.yml
-```
 
-```shell
-[student@ansible-1 ee-collections]$ echo "---
+[student@ansible-1 custom-collections]$ echo "---
 awxkit
 boto3
 kubernetes
 PyYAML
 " > requirements.txt
-```
 
-```shell
-[student@ansible-1 ee-collections]$ echo "
+[student@ansible-1 custom-collections]$ echo "
 rsync [platform:rpm]
 curl [platform:rpm]
 " > bindep.txt
 ```
 
+3. Once all the files are in place, lets build a new version of our `demo-ee` Execution Environment:
+
 ```shell
-[student@ansible-1 ee-collections]$ ls -la
-total 24
-drwxrwxr-x.  2 student student  124 Jun 21 18:18 .
-drwx------. 14 student student 4096 Jun 21 17:30 ..
--rw-rw-r--.  1 student student  371 Jun 21 18:17 ansible.cfg
--rw-rw-r--.  1 student student   43 Jun 21 18:17 bindep.txt
--rw-rw-r--.  1 student student  332 Jun 21 18:18 execution-environment.yml
--rw-rw-r--.  1 student student   56 Jun 21 18:17 requirements.txt
--rw-rw-r--.  1 student student  152 Jun 21 18:17 requirements.yml
-```
-
-Once all the files are in place, lets build a new version of our `my-ee-demo` Execution Environment Image:
-
-```
-[student@ansible-1 ee-collections]$ ansible-builder build --tag my-ee-demo:v2.0
+[student@ansible-1 custom-collections]$ ansible-builder build --tag demo-ee:v2.0
 Running command:
-  podman build -f context/Containerfile -t my-ee-demo:v2.0 context
-Complete! The build context can be found at: /home/student/ee-collections/context
+  podman build -f context/Containerfile -t demo-ee:v2.0 context
+Complete! The build context can be found at: /home/student/ansible-ee/custom-collections/context
 ```
 
-Then, review the brand new Execution Environment Image, with two commands `podman images` and `ansible-navigator images`
+4. Then, review the brand new Execution Environment, with two commands `ansible-navigator images` and `podman images`
 
 ```shell
-[student@ansible-1 ee-collections]$ podman images
-REPOSITORY                                                            TAG         IMAGE ID      CREATED             SIZE
-localhost/my-ee-demo                                                  v2.0        618973a5a017  About a minute ago  436 MB
-<none>                                                                <none>      69f55e66b494  2 minutes ago       593 MB
-<none>                                                                <none>      4c48be3b4640  4 minutes ago       315 MB
-<none>                                                                <none>      fad1d1b26079  9 minutes ago       232 MB
-<none>                                                                <none>      374a00032567  9 minutes ago       318 MB
-<none>                                                                <none>      fc5c7be36fde  About an hour ago   232 MB
-<none>                                                                <none>      63ad9b5d08fa  About an hour ago   318 MB
-<none>                                                                <none>      e488ea4e6207  About an hour ago   232 MB
-<none>                                                                <none>      e4396223872b  About an hour ago   318 MB
-<none>                                                                <none>      93df4ee04fc7  About an hour ago   306 MB
-localhost/my-ee-demo                                                  v1.0        5a63e5230497  3 hours ago         452 MB
-<none>                                                                <none>      d9d839ff7a32  3 hours ago         485 MB
-<none>                                                                <none>      59cd06e0aa9f  3 hours ago         339 MB
-<none>                                                                <none>      cdf36a0f164b  23 hours ago        253 MB
-<none>                                                                <none>      439c692fca7b  23 hours ago        339 MB
-<none>                                                                <none>      433c8492ade2  23 hours ago        253 MB
-<none>                                                                <none>      af80478bb0db  23 hours ago        339 MB
-<none>                                                                <none>      79575353b239  23 hours ago        253 MB
-<none>                                                                <none>      75ac926d2a3a  23 hours ago        339 MB
-registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8  1.0         36a5c93b87dd  13 days ago         1.68 GB
-registry.redhat.io/ansible-automation-platform-23/ee-29-rhel8         1.0         58c796a146e3  13 days ago         888 MB
-registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8       2.14        ab66adc81863  3 weeks ago         306 MB
-registry.redhat.io/ansible-automation-platform/ansible-builder-rhel8  1.2         fa3b605f379b  6 weeks ago         220 MB
-registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8  1.0.0-208   a36109621782  6 months ago        1.66 GB
+[student@ansible-1 custom-collections]$ podman images
+REPOSITORY                                                            TAG         IMAGE ID      CREATED         SIZE
+localhost/demo-ee                                                     v2.0        0ba17d4b6df6  7 minutes ago   480 MB
+<none>                                                                <none>      51f7449daca6  9 minutes ago   615 MB
+<none>                                                                <none>      bf3f8e8c0e79  10 minutes ago  315 MB
+localhost/demo-ee                                                     v1.0        d9e549389e04  27 minutes ago  498 MB
+<none>                                                                <none>      00661cdcae42  28 minutes ago  505 MB
+<none>                                                                <none>      36f00346add2  29 minutes ago  339 MB
+registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8       2.14        ab66adc81863  5 weeks ago     306 MB
+registry.redhat.io/ansible-automation-platform/ansible-builder-rhel8  1.2         c3964c78111b  5 weeks ago     311 MB
+registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8  1.0.0-208   a36109621782  6 months ago    1.66 GB
 ```
 
 ```shell
-[student@ansible-1 ee-collections]$ ansible-navigator images
-  Image                                                                       Tag                                Execution environment                                                       Created                                         Size
-0│ansible-builder-rhel8                                                       1.2                                False                                                                       6 weeks ago                                     220 MB
-1│ee-29-rhel8                                                                 1.0                                True                                                                        13 days ago                                     888 MB
-2│ee-minimal-rhel8                                                            2.14                               True                                                                        3 weeks ago                                     306 MB
-3│ee-supported-rhel8                                                          1.0                                True                                                                        13 days ago                                     1.68 GB
-4│ee-supported-rhel8                                                          1.0.0-208                          True                                                                        6 months ago                                    1.66 GB
-5│my-ee-demo                                                                  v2.0                               True                                                                        2 minutes ago                                   436 MB
-6│my-ee-demo                                                                  v1.0                               True                                                                        3 hours ago                                     452 MB
+[student@ansible-1 custom-collections]$ ansible-navigator images
+  Image                                                                          Tag                                 Execution environment                                                          Created                                              Size
+0│ansible-builder-rhel8                                                          1.2                                 False                                                                          5 weeks ago                                          311 MB
+1│demo-ee                                                                        v2.0                                True                                                                           7 minutes ago                                        480 MB
+2│demo-ee                                                                        v1.0                                True                                                                           26 minutes ago                                       498 MB
+3│ee-minimal-rhel8                                                               2.14                                True                                                                           5 weeks ago                                          306 MB
+4│ee-supported-rhel8                                                             1.0.0-208                           True                                                                           6 months ago                                         1.66 GB
 
 
 
 ^b/PgUp page up                                ^f/PgDn page down                                ↑↓ scroll                                esc back                                [0-9] goto                                :help help
 ```
 
-Then, press `**5**` to select `my-ee-demo:v2.0` and then press `**2**` to select `Ansible version and collections` and confirm that the `collections`, `python packages`, and `system packages` that we defined, exists on the Execution Environment Image
+Then, press `**1**` to select `demo-ee:v2.0` and then press `**2**` to select `Ansible version and collections` and confirm the `collections`, press `**ESC**` to return to the previous menu and then press `**3**` to select `Python packages` to confirm the `python packages` used on the Execution Environment, press `**ESC**` again to return to the previous menu and press `**4**` to select `Operating system` to confirm that the `system packages` exists on the Execution Environment.
 
-```
+```shell
  0│---
  1│ansible:
  2│  collections:
@@ -846,12 +897,46 @@ Then, press `**5**` to select `my-ee-demo:v2.0` and then press `**2**` to select
 10│    details: ansible [core 2.14.6]
 ```
 
+```shell
+   Name               Version   Summary
+ 0│ansible-compat     2.2.1     Ansible compatibility goodies
+ 1│ansible-core       2.14.6    Radically simple IT automation
+ 2│ansible-lint       6.8.2     Checks playbooks for practices and behavior that could potentially be improved
+ 3│ansible-pylibssh   1.1.0     Python bindings for libssh client specific to Ansible use case
+ 4│ansible-runner     2.3.2     Consistent Ansible Python API and CLI with container and process isolation runtime capabilities
+ .
+ .
+ .
+68│wcmatch            8.3       Wildcard/glob file name match
+er.
+69│xmltodict          0.12.0    Makes working with XML feel like you are working with JSON
+70│yamllint           1.26.3    A linter for YAML files.
+
+
+^b/PgUp page up                ^f/PgDn page down                ↑↓ scroll                esc back                [0-9] goto                :help help
+```
+
+```shell
+  Name                                  Version       Summary
+  0│acl                                   2.2.53        Access control list utilities                                                                                ▒
+  1│ansible-core                          2.14.6        SSH-based configuration management, deployment, and task execution system                                    ▒
+  2│ansible-lint                          6.8.2         Checks playbooks for practices and behaviour that could potentially be improved                              ▒
+  3│ansible-runner                        2.3.2         A tool and python library to interface with Ansible                                                          ▒
+  4│ansible-test                          2.14.6        Tool for testing ansible plugin and module code                                                              ▒
+  .
+  .
+  .
+215│yamllint                             1.26.3       A linter for YAML files.                                                                                       ▒
+216│zlib                                 1.2.11       The compression and decompression library                                                                      ▒
+217│zstd                                 1.4.4        Zstd compression library
+```
+
 That is all for now, let's jump over the next section.
 
 
 ### Takeaways
 
-- You can use the ansible-navigator images command to inspect automation execution environments and to list the collections and their dependencies.
+- You can use the `ansible-navigator images`z command to inspect automation execution environments and to list the collections and their dependencies.
 - Ansible Playbooks refer to modules, roles, and plug-ins in Ansible Content Collections by their fully qualified collection name (FQCN).
 - Automation execution environments can access the Ansible Content Collections on the local system that are installed in a collections/ directory in the same directory as the playbook.
 - The supported automation execution environment is used by default by automation content navigator and automation controller.
